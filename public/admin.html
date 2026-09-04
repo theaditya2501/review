@@ -366,7 +366,6 @@
             $('loginErrorAlert').textContent = '❌ ' + errMsg;
             $('loginErrorAlert').classList.remove('hidden');
           }
-          alert('❌ ' + errMsg);
           return;
         }
 
@@ -380,7 +379,6 @@
           $('loginErrorAlert').textContent = '❌ Login failed. Please check network connection and password.';
           $('loginErrorAlert').classList.remove('hidden');
         }
-        alert('❌ Login failed. Please check your network and password.');
       } finally {
         $('loginBtn').disabled = false;
         $('loginBtn').textContent = 'Login to Dashboard 🔑';
