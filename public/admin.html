@@ -345,9 +345,19 @@
       loadAllDashboardData();
     }
 
-    $('loginForm').onsubmit = async () => {
+    async function doAdminLogin(e) {
+      if (e && e.preventDefault) e.preventDefault();
       const tenantSlug = $('tenantInput').value.trim();
       const password = $('adminPass').value;
+
+      if (!password) {
+        if ($('loginErrorAlert')) {
+          $('loginErrorAlert').textContent = '❌ Please enter your account password.';
+          $('loginErrorAlert').classList.remove('hidden');
+        }
+        return false;
+      }
+
       $('loginBtn').disabled = true;
       $('loginBtn').textContent = 'Authenticating...';
       if ($('loginErrorAlert')) $('loginErrorAlert').classList.add('hidden');
@@ -366,7 +376,7 @@
             $('loginErrorAlert').textContent = '❌ ' + errMsg;
             $('loginErrorAlert').classList.remove('hidden');
           }
-          return;
+          return false;
         }
 
         token = data.token;
@@ -376,14 +386,17 @@
         showDashboard();
       } catch (err) {
         if ($('loginErrorAlert')) {
-          $('loginErrorAlert').textContent = '❌ Login failed. Please check network connection and password.';
+          $('loginErrorAlert').textContent = '❌ Login failed. Please check network connection.';
           $('loginErrorAlert').classList.remove('hidden');
         }
       } finally {
         $('loginBtn').disabled = false;
         $('loginBtn').textContent = 'Login to Dashboard 🔑';
       }
-    };
+    }
+
+    if ($('loginForm')) $('loginForm').addEventListener('submit', doAdminLogin);
+    if ($('loginBtn')) $('loginBtn').onclick = doAdminLogin;
 
     $('logoutBtn').onclick = () => {
       token = '';
