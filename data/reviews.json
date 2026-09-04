@@ -1,0 +1,47 @@
+[
+  {
+    "id": "7SUu8rFITcNPzA8Hc8iJ",
+    "tags": [],
+    "businessName": "Divya Rathod Beauty Salon",
+    "rating": 5,
+    "status": "new",
+    "consentContact": false,
+    "customerPhone": "",
+    "staff": "",
+    "feedback": "Got my layered haircut and blowdry styling done here and I am obsessed with the volume! The staff is exceptionally warm, professional, and knowledgeable. They gave fantastic hair care tips. Will definitely be recommending to all my friends!",
+    "customerName": "",
+    "service": "Haircut & Hair Styling",
+    "createdAt": "2026-09-04T06:43:12.543Z",
+    "tenantSlug": "divya-rathod-beauty-salon"
+  },
+  {
+    "id": "NGeN2J622NlsyGbcQ02A",
+    "consentContact": false,
+    "feedback": "My acrylic extensions have lasted over 3 weeks without chipping or lifting! Superior quality products and master craftsmanship.",
+    "businessName": "Divya Rathod Beauty Salon",
+    "status": "new",
+    "rating": 5,
+    "tags": [],
+    "customerName": "",
+    "customerPhone": "",
+    "createdAt": "2026-09-04T06:41:57.978Z",
+    "staff": "",
+    "tenantSlug": "divya-rathod-beauty-salon",
+    "service": "Nail Extensions & Spa"
+  },
+  {
+    "id": "aEE6Jdw3Qobm6HM2OF01",
+    "consentContact": false,
+    "feedback": "Loved the face-framing highlights! It brightened up my entire face instantly. Professional guidance, transparent pricing, and royal ambiance.",
+    "customerPhone": "",
+    "tenantSlug": "divya-rathod-beauty-salon",
+    "customerName": "",
+    "rating": 5,
+    "status": "new",
+    "createdAt": "2026-09-04T06:41:28.165Z",
+    "businessName": "Divya Rathod Beauty Salon",
+    "tags": [],
+    "staff": "",
+    "service": "Hair Colouring & Highlights"
+  }
+]

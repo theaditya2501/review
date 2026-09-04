@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Master Control Panel • GMB Multi-Tenant Platform</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --bg-gradient: radial-gradient(circle at 50% -10%, #3d1428 0%, #1c0813 50%, #0c0208 100%);
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --primary: #4a1329;
+      --accent-gold: #d4af37;
+      --gold-gradient: linear-gradient(135deg, #fae596 0%, #d4af37 50%, #99730c 100%);
+      --rose-gradient: linear-gradient(135deg, #7a2347 0%, #4a152d 100%);
+      --rose-light: #fdf0f5;
+      --rose-border: #f5d3e3;
+      --surface-alt: #fdf8fa;
+      --text-main: #1c1117;
+      --text-muted: #6b5a64;
+      --border: #eddce5;
+      --radius-md: 18px;
+      --radius-lg: 32px;
+      --radius-pill: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; line-height: 1.6; padding: 36px 16px; }
+    
+    .container { width: 100%; max-width: 1050px; margin: 0 auto; position: relative; z-index: 1; }
+    .card { background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: var(--radius-lg); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45); padding: 36px 32px; margin-bottom: 24px; position: relative; }
+    .card-login { max-width: 440px; text-align: center; margin: 40px auto; }
+    .brand-badge { width: 80px; height: 80px; border-radius: 26px; margin: 0 auto 18px; display: grid; place-items: center; background: var(--rose-gradient); color: #fff; font-family: var(--font-serif); font-weight: 700; font-size: 30px; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(74, 19, 41, 0.35), 0 0 0 3px var(--accent-gold); }
+
+    h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; color: var(--primary); line-height: 1.25; margin-bottom: 8px; }
+    h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
+    .subtitle { font-size: 13px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 8px; }
+    .muted { color: var(--text-muted); font-size: 14px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: var(--radius-md); padding: 12px 20px; background: var(--rose-gradient); color: #ffffff; font-family: var(--font-sans); font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.2s ease; }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.08); }
+    .btn-gold { background: var(--gold-gradient); color: #111; }
+    .btn-secondary { background: var(--rose-light); color: var(--primary); border: 1px solid var(--rose-border); }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-pause { background: #d97706; color: white; }
+    .btn-start { background: #16a34a; color: white; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; border-radius: 8px; }
+    .btn-block { width: 100%; }
+
+    .form-group { margin-bottom: 16px; text-align: left; }
+    label { display: block; font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 6px; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 11px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 14px; color: var(--text-main); background: var(--surface-alt); }
+
+    .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; text-align: center; }
+    .stat-card b { display: block; font-size: 32px; font-family: var(--font-serif); color: var(--primary); font-weight: 700; }
+    .stat-card span { color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .biz-card { background: #ffffff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+    .biz-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+    
+    .badge { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge-active { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-pending { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+    .badge-paused { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    .table-custom { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 14px; }
+    .table-custom th, .table-custom td { padding: 12px 14px; border-bottom: 1px solid var(--border); text-align: left; }
+    .table-custom th { background: var(--surface-alt); color: var(--primary); font-weight: 700; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    
+    <!-- Login Screen -->
+    <section id="loginCard" class="card card-login">
+      <div class="brand-badge">MCP</div>
+      <div class="subtitle">Platform Control</div>
+      <h1>Master Control Panel</h1>
+      <p class="muted" style="margin-bottom: 20px;">Enter master password to manage business profiles, Place IDs & subscription access.</p>
+
+      <form id="loginForm" onsubmit="return false;">
+        <div class="form-group">
+          <label for="passInput">Master Control Password</label>
+          <input id="passInput" type="password" placeholder="Enter Password" required>
+        </div>
+        <button type="submit" id="loginBtn" class="btn btn-gold btn-block">
+          Authenticate & Open Control Panel 🔑
+        </button>
+      </form>
+    </section>
+
+    <!-- Main Dashboard -->
+    <section id="dashCard" class="hidden">
+      
+      <div class="card" style="padding: 24px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+          <div>
+            <div class="subtitle" style="margin-bottom: 0;">System Overview</div>
+            <h1 style="font-size: 28px; margin: 4px 0 0;">Platform Master Control Panel</h1>
+          </div>
+          <button id="logoutBtn" class="btn btn-secondary btn-sm">
+            Logout 🚪
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid-stats">
+        <div class="stat-card">
+          <b id="statTotal">0</b>
+          <span>Total Businesses</span>
+        </div>
+        <div class="stat-card">
+          <b id="statRevenue">₹0</b>
+          <span>Monthly Revenue (₹199/mo)</span>
+        </div>
+        <div class="stat-card">
+          <b id="statActive" style="color: #16a34a;">0</b>
+          <span>Active Profiles</span>
+        </div>
+        <div class="stat-card">
+          <b id="statPending" style="color: #d97706;">0</b>
+          <span>Pending Setup</span>
+        </div>
+        <div class="stat-card">
+          <b id="statPaused" style="color: #dc2626;">0</b>
+          <span>Service Paused</span>
+        </div>
+      </div>
+
+      <!-- Business Accounts List -->
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+          <div>
+            <h2>Registered Business Accounts & Place ID Setup</h2>
+            <p class="muted">Update Place ID, trigger Groq AI GMB analysis, or pause/start service.</p>
+          </div>
+          <button id="refreshBtn" class="btn btn-secondary btn-sm">
+            🔄 Refresh List
+          </button>
+        </div>
+
+        <div id="bizList">
+          <p class="muted">Loading accounts...</p>
+        </div>
+      </div>
+
+      <!-- Payment & Request History -->
+      <div class="card">
+        <h2>💳 Razorpay Payment & Registration Request History</h2>
+        <p class="muted">Track all incoming ₹199/month subscriptions and account setup requests.</p>
+        
+        <div style="overflow-x: auto; margin-top: 16px;">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Date / Time</th>
+                <th>Business Name</th>
+                <th>Phone Number</th>
+                <th>Subscription / Payment ID</th>
+                <th>Billing</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="paymentHistoryBody">
+              <tr><td colspan="6" class="muted">Loading history...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script>
+    const API_BASE = (location.protocol.startsWith('http') && location.port === '3000')
+      ? ''
+      : `${location.protocol.startsWith('http') ? location.protocol : 'http:'}//${location.hostname || '127.0.0.1'}:3000`;
+
+    let masterToken = sessionStorage.masterToken || '';
+    const $ = id => document.getElementById(id);
+
+    async function api(endpoint, options = {}) {
+      options.headers = {
+        ...(options.headers || {}),
+        'x-master-token': masterToken
+      };
+      const res = await fetch(API_BASE + endpoint, options);
+      if (res.status === 401) {
+        masterToken = '';
+        sessionStorage.removeItem('masterToken');
+        showLogin();
+        throw new Error('Unauthorized');
+      }
+      return res.json();
+    }
+
+    function showLogin() {
+      $('loginCard').classList.remove('hidden');
+      $('dashCard').classList.add('hidden');
+    }
+
+    function showDash() {
+      $('loginCard').classList.add('hidden');
+      $('dashCard').classList.remove('hidden');
+      loadBusinesses();
+      loadPaymentHistory();
+    }
+
+    $('loginForm').onsubmit = async () => {
+      const password = $('passInput').value;
+      $('loginBtn').disabled = true;
+      $('loginBtn').textContent = 'Authenticating...';
+
+      try {
+        const res = await fetch(API_BASE + '/api/master/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || 'Invalid Master Password');
+          return;
+        }
+
+        masterToken = data.token;
+        sessionStorage.masterToken = masterToken;
+        showDash();
+      } catch (err) {
+        alert('Authentication failed.');
+      } finally {
+        $('loginBtn').disabled = false;
+        $('loginBtn').textContent = 'Authenticate & Open Control Panel 🔑';
+      }
+    };
+
+    $('logoutBtn').onclick = () => {
+      masterToken = '';
+      sessionStorage.removeItem('masterToken');
+      showLogin();
+    };
+
+    async function loadBusinesses() {
+      try {
+        const data = await api('/api/master/businesses');
+        $('statTotal').textContent = data.totalBusinesses;
+        $('statRevenue').textContent = `₹${data.monthlyRevenue.toLocaleString()}`;
+        $('statActive').textContent = data.activeCount;
+        $('statPending').textContent = data.pendingCount;
+        $('statPaused').textContent = data.pausedCount;
+
+        renderBusinesses(data.businesses);
+      } catch (err) {}
+    }
+
+    async function loadPaymentHistory() {
+      try {
+        const history = await api('/api/master/payments');
+        const tbody = $('paymentHistoryBody');
+        if (!history || history.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="muted">No payment history recorded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = history.map(item => `
+          <tr>
+            <td>${item.date ? new Date(item.date).toLocaleString() : 'N/A'}</td>
+            <td><b>${item.name}</b><br><small class="muted">/${item.slug}</small></td>
+            <td><a href="tel:${item.phone}">${item.phone}</a></td>
+            <td><code>${item.subscriptionId}</code></td>
+            <td><span class="badge badge-active">${item.plan}</span></td>
+            <td><b>${item.status}</b></td>
+          </tr>
+        `).join('');
+      } catch (e) {}
+    }
+
+    function renderBusinesses(list) {
+      const container = $('bizList');
+      if (!list || list.length === 0) {
+        container.innerHTML = '<p class="muted">No business accounts found.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map(item => {
+        let badgeClass = 'badge-active';
+        let statusText = 'Active & Activated';
+        if (item.status === 'pending_setup') {
+          badgeClass = 'badge-pending';
+          statusText = 'Pending Place ID Setup';
+        } else if (item.status === 'paused') {
+          badgeClass = 'badge-paused';
+          statusText = 'Service Paused';
+        }
+
+        return `
+          <div class="biz-card">
+            <div class="biz-header">
+              <div>
+                <span class="subtitle" style="margin:0;">Slug: ${item.slug}</span>
+                <h3 style="font-family: var(--font-serif); font-size: 22px; color: var(--primary); margin: 2px 0;">${item.name}</h3>
+                <small class="muted">Phone: <b>${item.phone || 'N/A'}</b> | Plan: <b>${item.plan || '₹199/mo'}</b></small>
+              </div>
+              <div>
+                <span class="badge ${badgeClass}">${statusText}</span>
+              </div>
+            </div>
+
+            <div style="background: var(--surface-alt); padding: 16px; border-radius: 12px; margin: 12px 0; border: 1px dashed var(--border);">
+              <div class="form-group" style="margin-bottom: 10px;">
+                <label style="font-size: 13px;">Google Place ID (Direct Review Modal)</label>
+                <input id="placeId-${item.slug}" type="text" value="${item.googlePlaceId || ''}" placeholder="e.g. ChIJmcF2R3KDXjkR8uxzfKEdGyA">
+              </div>
+
+              ${item.aiAnalysis ? `
+                <div style="background: #ffffff; padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-gold); margin-bottom: 12px; font-size: 13px;">
+                  🤖 <b>Groq GMB Analysis:</b> ${item.aiAnalysis}
+                </div>
+              ` : ''}
+
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="savePlaceIdAndActivate('${item.slug}')" class="btn btn-gold btn-sm">
+                  💾 Save Place ID & Activate
+                </button>
+
+                <button onclick="runGroqAnalysis('${item.slug}')" class="btn btn-secondary btn-sm">
+                  🤖 Groq Analyze GMB Profile
+                </button>
+                
+                ${item.status === 'paused' ? `
+                  <button onclick="toggleServiceStatus('${item.slug}', 'active')" class="btn btn-start btn-sm">
+                    ▶️ Start / Reactivate Service
+                  </button>
+                ` : `
+                  <button onclick="toggleServiceStatus('${item.slug}', 'paused')" class="btn btn-pause btn-sm">
+                    ⏸️ Pause / Stop Service
+                  </button>
+                `}
+
+                <button onclick="deleteBusiness('${item.slug}')" class="btn btn-danger btn-sm">
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+              <a href="${item.reviewUrl}" target="_blank" class="btn btn-secondary btn-sm">
+                ⭐ Customer Review Link
+              </a>
+              <a href="${item.adminUrl}" target="_blank" class="btn btn-secondary btn-sm">
+                🔑 Owner Dashboard Link
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function savePlaceIdAndActivate(slug) {
+      const placeId = $(`placeId-${slug}`).value.trim();
+      try {
+        await api('/api/master/businesses/' + slug, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ googlePlaceId: placeId, status: 'active' })
+        });
+        alert('Place ID saved and business activated!');
+        loadBusinesses();
+        loadPaymentHistory();
+      } catch (e) {
+        alert('Failed to update business');
+      }
+    }
+
+    async function runGroqAnalysis(slug) {
+      alert('Running Groq AI GMB Profile Analysis...');
+      try {
+        const res = await api('/api/master/analyze-gmb', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug })
+        });
+        if (res.ok) {
+          alert('Groq AI Analysis Complete:\n\n' + res.aiAnalysis);
+          loadBusinesses();
+        }
+      } catch (e) {
+        alert('Analysis error');
+      }
+    }
+
+    async function toggleServiceStatus(slug, newStatus) {
+      try {
+        await api('/api/master/toggle-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, status: newStatus })
+        });
+        loadBusinesses();
+        loadPaymentHistory();
+      } catch (e) {}
+    }
+
+    async function deleteBusiness(slug) {
+      if (!confirm(`Delete profile "${slug}" permanently?`)) return;
+      try {
+        await api('/api/master/businesses/' + slug, { method: 'DELETE' });
+        loadBusinesses();
+        loadPaymentHistory();
+      } catch (e) {}
+    }
+
+    $('refreshBtn').onclick = () => {
+      loadBusinesses();
+      loadPaymentHistory();
+    };
+
+    if (masterToken) showDash();
+    else showLogin();
+  </script>
+</body>
+</html>

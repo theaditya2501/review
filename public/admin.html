@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GMB Business Admin Dashboard • Review Booster Portal</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --bg-gradient: radial-gradient(circle at 50% -10%, #3d1428 0%, #1c0813 50%, #0c0208 100%);
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --primary: #4a1329;
+      --primary-hover: #340c1c;
+      --accent-gold: #d4af37;
+      --accent-gold-hover: #b89324;
+      --gold-gradient: linear-gradient(135deg, #fae596 0%, #d4af37 50%, #99730c 100%);
+      --rose-gradient: linear-gradient(135deg, #7a2347 0%, #4a152d 100%);
+      --rose-light: #fdf0f5;
+      --rose-border: #f5d3e3;
+      --surface: #ffffff;
+      --surface-alt: #fdf8fa;
+      --text-main: #1c1117;
+      --text-muted: #6b5a64;
+      --border: #eddce5;
+      --star-active: #f5b014;
+      --shadow-sm: 0 4px 14px rgba(74, 19, 41, 0.06);
+      --shadow-lg: 0 30px 80px rgba(0, 0, 0, 0.45);
+      --radius-sm: 12px;
+      --radius-md: 18px;
+      --radius-lg: 32px;
+      --radius-pill: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; line-height: 1.6; position: relative; }
+    body::before { content: ''; position: fixed; top: -120px; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(122, 35, 71, 0.25) 50%, transparent 80%); pointer-events: none; z-index: 0; }
+    .page { min-height: 100vh; padding: 36px 16px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; position: relative; z-index: 1; }
+    .container { width: 100%; max-width: 900px; margin: 0 auto; }
+    .card { background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 36px 32px; margin-bottom: 24px; position: relative; }
+    .card-hero { max-width: 480px; text-align: center; margin: 40px auto; }
+    .brand-badge { width: 80px; height: 80px; border-radius: 26px; margin: 0 auto 18px; display: grid; place-items: center; background: var(--rose-gradient); color: #fff; font-family: var(--font-serif); font-weight: 700; font-size: 30px; letter-spacing: 1px; box-shadow: 0 10px 25px rgba(74, 19, 41, 0.35), 0 0 0 3px var(--accent-gold); }
+    
+    h1 { font-family: var(--font-serif); font-size: 32px; font-weight: 700; color: var(--primary); line-height: 1.25; margin-bottom: 8px; }
+    h2 { font-family: var(--font-serif); font-size: 24px; font-weight: 700; color: var(--primary); margin-bottom: 16px; }
+    .subtitle { font-size: 13px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .muted { color: var(--text-muted); font-size: 14px; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: var(--radius-md); padding: 14px 24px; background: var(--rose-gradient); color: #ffffff; font-family: var(--font-sans); font-size: 15px; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(74, 19, 41, 0.25); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(74, 19, 41, 0.35); }
+    .btn-gold { background: var(--gold-gradient); color: #111; box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35); }
+    .btn-gold:hover { filter: brightness(1.06); }
+    .btn-secondary { background: var(--rose-light); color: var(--primary); border: 1px solid var(--rose-border); }
+    .btn-outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+    .btn-danger { background: #dc2626; color: white; }
+    .btn-sm { padding: 8px 14px; font-size: 13px; border-radius: var(--radius-sm); }
+    .btn-block { width: 100%; }
+
+    .form-group { margin-bottom: 20px; text-align: left; }
+    label { display: block; font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 8px; }
+    input[type="text"], input[type="password"], textarea { width: 100%; padding: 13px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 15px; color: var(--text-main); background: var(--surface-alt); }
+    
+    .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px 16px; box-shadow: var(--shadow-sm); text-align: center; }
+    .stat-card b { display: block; font-size: 32px; font-family: var(--font-serif); color: var(--primary); font-weight: 700; line-height: 1.1; margin-bottom: 4px; }
+    .stat-card span { color: var(--text-muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .review-item { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; background: var(--surface); }
+    .review-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+    .review-stars { color: var(--star-active); font-size: 18px; }
+    
+    .badge { display: inline-block; padding: 4px 10px; border-radius: var(--radius-pill); font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .badge-positive { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-private { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
+    .badge-plan { background: #fae596; color: #574000; border: 1px solid #d4af37; font-weight: 700; }
+
+    .status-banner { padding: 18px 24px; border-radius: var(--radius-md); margin-bottom: 24px; text-align: left; }
+    .status-pending { background: #fef9c3; border: 1.5px solid #fef08a; color: #854d0e; }
+    .status-active { background: #dcfce7; border: 1.5px solid #bbf7d0; color: #15803d; }
+    .status-paused { background: #fee2e2; border: 1.5px solid #fca5a5; color: #991b1b; }
+
+    .tabs-nav { display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+    .tab-btn { padding: 10px 18px; background: none; border: none; border-bottom: 3px solid transparent; font-family: var(--font-sans); font-size: 14px; font-weight: 700; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--accent-gold); }
+
+    .poster-preview-card { background: linear-gradient(145deg, #1f0b15, #3b0e24); color: #fff; border-radius: var(--radius-lg); padding: 36px 28px; text-align: center; border: 3px solid var(--accent-gold); max-width: 420px; margin: 0 auto 20px; }
+    .poster-preview-card .brand-badge { background: var(--gold-gradient); color: #111; border-color: #ffffff; }
+    .poster-qr-frame { background: #ffffff; padding: 16px; border-radius: var(--radius-md); display: inline-block; margin: 20px 0; }
+    .poster-qr-frame img { width: 220px; height: 220px; display: block; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="container">
+      
+      <!-- Owner Login Section -->
+      <section id="loginSection" class="card card-hero">
+        <div class="brand-badge" id="loginBadge">GMB</div>
+        <div class="subtitle">GMB Owner Login</div>
+        <h1 id="loginTitle">Business Owner Portal</h1>
+        <p class="muted" style="margin-bottom: 24px;">Log in to access your HD Standee QR Code, GMB analytics, and customer reviews.</p>
+
+        <form id="loginForm" onsubmit="return false;">
+          <div class="form-group">
+            <label for="tenantInput">Business Account Slug</label>
+            <input id="tenantInput" type="text" value="divya-rathod-beauty-salon" placeholder="e.g. divya-rathod-beauty-salon" required>
+          </div>
+          <div class="form-group">
+            <label for="adminPass">Account Password</label>
+            <input id="adminPass" type="password" placeholder="Enter Password" required>
+          </div>
+          <button type="submit" id="loginBtn" class="btn btn-gold btn-block">
+            Login to Dashboard 🔑
+          </button>
+        </form>
+      </section>
+
+      <!-- Owner Dashboard Section -->
+      <section id="dashSection" class="hidden">
+        
+        <!-- Header -->
+        <div class="card" style="padding: 24px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <div class="subtitle" style="margin-bottom: 0;">GMB Portal</div>
+                <span class="badge badge-plan">₹199 / Month Autopay Active</span>
+              </div>
+              <h1 id="dashSalonName" style="font-size: 26px; margin: 4px 0 0;">Divya Rathod Beauty Salon</h1>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+              <a id="viewLiveBtn" href="/r/divya-rathod-beauty-salon" target="_blank" class="btn btn-secondary btn-sm">
+                ↗️ Customer Review Page
+              </a>
+              <button id="logoutBtn" class="btn btn-outline btn-sm">
+                Logout 🚪
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Banner -->
+          <div id="statusBanner" class="status-banner status-pending" style="margin-top: 20px; margin-bottom: 0;">
+            <b>⏳ Account Status: Pending Setup</b><br>
+            <span style="font-size: 13px;">Our management team is analyzing your profile and configuring your Google Place ID. Once activated, your HD Standee QR Code and 5-Star Direct Redirect will be unlocked!</span>
+          </div>
+
+          <!-- Navigation Tabs -->
+          <div class="tabs-nav" style="margin-top: 24px; margin-bottom: 0;">
+            <button class="tab-btn active" data-tab="tabAnalytics">📊 GMB Performance Analytics</button>
+            <button class="tab-btn" data-tab="tabReviews">💬 Customer Reviews (<span id="totalBadge">0</span>)</button>
+            <button class="tab-btn" data-tab="tabQr">🖼️ Printable Standee QR Poster</button>
+            <button class="tab-btn" data-tab="tabSettings">⚙️ Profile Settings</button>
+          </div>
+        </div>
+
+        <!-- TAB 1: ANALYTICS -->
+        <div id="tabAnalytics" class="tab-content">
+          <div class="grid-stats">
+            <div class="stat-card">
+              <b id="statHealth" style="color: #16a34a;">98%</b>
+              <span>GMB Profile Health</span>
+            </div>
+            <div class="stat-card">
+              <b id="statTotal">0</b>
+              <span>Total Reviews</span>
+            </div>
+            <div class="stat-card">
+              <b id="statAvg">5.0</b>
+              <span>Average Rating</span>
+            </div>
+            <div class="stat-card">
+              <b id="statPositive">0</b>
+              <span>Google 5-Star Redirects</span>
+            </div>
+            <div class="stat-card">
+              <b id="statPrivate">0</b>
+              <span>Private Feedback (1-3 ★)</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <h2>Rating Breakdown & Customer Sentiment</h2>
+            <div id="ratingBars" style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: REVIEWS -->
+        <div id="tabReviews" class="tab-content hidden">
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
+              <div>
+                <h2>Customer Feedback & Reviews</h2>
+                <p class="muted">Track 5-star Google redirects and internal private feedback</p>
+              </div>
+              <button id="refreshReviewsBtn" class="btn btn-outline btn-sm">
+                🔄 Refresh
+              </button>
+            </div>
+
+            <div id="reviewsList">
+              <p class="muted">Loading reviews...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: QR STANDEE POSTER -->
+        <div id="tabQr" class="tab-content hidden">
+          <div class="card">
+            <h2>Full HD 4K Printable Standee QR Poster</h2>
+            <p class="muted" style="margin-bottom: 24px;">Print and place this QR poster on your reception desk or tables.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;" class="form-grid">
+              
+              <div>
+                <div id="posterPreview" class="poster-preview-card">
+                  <div class="brand-badge" id="posterBadge">DR</div>
+                  <h2 id="posterSalonName">Divya Rathod Beauty Salon</h2>
+                  <p id="posterTagline">Google Verified Business</p>
+
+                  <div class="poster-qr-frame">
+                    <img id="qrImg" alt="QR Code">
+                  </div>
+
+                  <h3 style="color: #fff; font-family: var(--font-serif); font-size: 20px; margin-bottom: 4px;" id="posterHeadline">
+                    Scan To Share Your Feedback
+                  </h3>
+                  <p style="color: var(--accent-gold); font-size: 13px; font-weight: 600;" id="posterSubheadline">
+                    We value your experience with us!
+                  </p>
+                </div>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 16px; justify-content: center;">
+                <div class="form-group">
+                  <label for="headlineInput">Headline Text</label>
+                  <input id="headlineInput" type="text" value="Scan To Share Your Feedback">
+                </div>
+
+                <div class="form-group">
+                  <label for="subheadlineInput">Subtitle Text</label>
+                  <input id="subheadlineInput" type="text" value="We value your experience with us!">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                  <button id="downloadPosterBtn" class="btn btn-gold btn-block">
+                    🖼️ Download Full HD 4K Poster (PNG)
+                  </button>
+                  <button id="copyQrLinkBtn" class="btn btn-secondary btn-block">
+                    🔗 Copy Customer Direct Review Link
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: SETTINGS -->
+        <div id="tabSettings" class="tab-content hidden">
+          <div class="card">
+            <h2>Profile Settings</h2>
+            <p class="muted" style="margin-bottom: 24px;">Update business name, phone, address, and password.</p>
+
+            <form id="settingsForm" onsubmit="return false;">
+              <div class="form-group">
+                <label for="setSalonName">Business Name</label>
+                <input id="setSalonName" type="text" required>
+              </div>
+
+              <div class="form-group">
+                <label for="setTagline">Tagline</label>
+                <input id="setTagline" type="text">
+              </div>
+
+              <div class="form-group">
+                <label for="setAddress">Address</label>
+                <input id="setAddress" type="text">
+              </div>
+
+              <div class="form-group">
+                <label for="setPhone">Contact Phone</label>
+                <input id="setPhone" type="text">
+              </div>
+
+              <div class="form-group">
+                <label for="setAdminPass">Change Account Password</label>
+                <input id="setAdminPass" type="password" placeholder="New Password">
+              </div>
+
+              <button id="saveSettingsBtn" class="btn btn-gold">
+                💾 Save Settings
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = (location.protocol.startsWith('http') && location.port === '3000')
+      ? ''
+      : `${location.protocol.startsWith('http') ? location.protocol : 'http:'}//${location.hostname || '127.0.0.1'}:3000`;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    let activeTenantSlug = urlParams.get('tenant') || sessionStorage.activeTenantSlug || 'divya-rathod-beauty-salon';
+
+    let token = sessionStorage.token || '';
+    let currentSettings = {};
+
+    const $ = id => document.getElementById(id);
+    $('tenantInput').value = activeTenantSlug;
+
+    async function api(endpoint, options = {}) {
+      options.headers = {
+        ...(options.headers || {}),
+        'x-admin-token': token
+      };
+      const res = await fetch(API_BASE + endpoint, options);
+      if (res.status === 401) {
+        token = '';
+        sessionStorage.removeItem('token');
+        showAuth();
+        throw new Error('Unauthorized');
+      }
+      return res.json();
+    }
+
+    function showAuth() {
+      $('loginSection').classList.remove('hidden');
+      $('dashSection').classList.add('hidden');
+    }
+
+    function showDashboard() {
+      $('loginSection').classList.add('hidden');
+      $('dashSection').classList.remove('hidden');
+      loadAllDashboardData();
+    }
+
+    $('loginForm').onsubmit = async () => {
+      const tenantSlug = $('tenantInput').value.trim();
+      const password = $('adminPass').value;
+      $('loginBtn').disabled = true;
+      $('loginBtn').textContent = 'Authenticating...';
+
+      try {
+        const res = await fetch(API_BASE + '/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenantSlug, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || 'Invalid Credentials');
+          return;
+        }
+
+        token = data.token;
+        activeTenantSlug = data.tenantSlug;
+        sessionStorage.token = token;
+        sessionStorage.activeTenantSlug = activeTenantSlug;
+        showDashboard();
+      } catch (err) {
+        alert('Login failed.');
+      } finally {
+        $('loginBtn').disabled = false;
+        $('loginBtn').textContent = 'Login to Dashboard 🔑';
+      }
+    };
+
+    $('logoutBtn').onclick = () => {
+      token = '';
+      sessionStorage.removeItem('token');
+      showAuth();
+    };
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+        btn.classList.add('active');
+        $(btn.dataset.tab).classList.remove('hidden');
+      });
+    });
+
+    async function loadStats() {
+      try {
+        const s = await api('/api/admin/stats');
+        $('statTotal').textContent = s.total;
+        $('totalBadge').textContent = s.total;
+        $('statAvg').textContent = s.average || '5.0';
+        $('statPositive').textContent = s.positiveCount;
+        $('statPrivate').textContent = s.privateCount;
+        $('statHealth').textContent = `${s.healthScore}%`;
+
+        // Update status banner
+        const banner = $('statusBanner');
+        if (s.status === 'active') {
+          banner.className = 'status-banner status-active';
+          banner.innerHTML = `
+            <b>✨ Account Active & Google Place ID Linked</b><br>
+            <span style="font-size: 13px;">Your ₹199/month subscription is active! Your 5-star Google review direct modal and HD Standee QR Code are live.</span>
+          `;
+        } else if (s.status === 'paused') {
+          banner.className = 'status-banner status-paused';
+          banner.innerHTML = `
+            <b>⏸️ Subscription Service Paused</b><br>
+            <span style="font-size: 13px;">Service has been temporarily paused by management. Please contact support to reactivate.</span>
+          `;
+        } else {
+          banner.className = 'status-banner status-pending';
+          banner.innerHTML = `
+            <b>⏳ Account Status: Pending Setup</b><br>
+            <span style="font-size: 13px;">Our management team is analyzing your profile and configuring your Google Place ID. Once activated, your HD Standee QR Code and 5-Star Direct Redirect will be unlocked!</span>
+          `;
+        }
+
+        const container = $('ratingBars');
+        container.innerHTML = '';
+        [5, 4, 3, 2, 1].forEach(star => {
+          const count = s.ratingCounts[star] || 0;
+          const pct = s.total ? Math.round((count / s.total) * 100) : (star === 5 ? 100 : 0);
+          
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.gap = '12px';
+          row.innerHTML = `
+            <span style="font-weight:700; width: 45px;">${star} ★</span>
+            <div style="flex:1; background: var(--surface-alt); border-radius: var(--radius-pill); height: 12px; overflow: hidden; border: 1px solid var(--border);">
+              <div style="width: ${pct}%; background: ${star >= 4 ? 'var(--primary)' : 'var(--accent-gold)'}; height: 100%;"></div>
+            </div>
+            <span style="font-size: 13px; color: var(--text-muted); width: 70px; text-align: right;">${count} (${pct}%)</span>
+          `;
+          container.appendChild(row);
+        });
+      } catch (err) {}
+    }
+
+    async function loadReviews() {
+      try {
+        const list = await api('/api/admin/reviews');
+        const container = $('reviewsList');
+        if (!list || list.length === 0) {
+          container.innerHTML = '<p class="muted">No reviews recorded yet.</p>';
+          return;
+        }
+
+        container.innerHTML = list.map(item => `
+          <div class="review-item">
+            <div class="review-header">
+              <div>
+                <span class="review-stars">${'★'.repeat(item.rating)}</span>
+                <span class="badge ${item.rating >= 4 ? 'badge-positive' : 'badge-private'}">${item.rating >= 4 ? 'Google Redirect (4-5 ★)' : 'Private Feedback (1-3 ★)'}</span>
+              </div>
+              <small class="muted">${item.createdAt ? new Date(item.createdAt).toLocaleString() : ''}</small>
+            </div>
+            <div style="font-size: 14px; margin-bottom: 8px;">
+              ${item.customerName ? `<b>Customer:</b> ${item.customerName}` : ''}
+              ${item.customerPhone ? ` | <b>Phone:</b> <a href="tel:${item.customerPhone}">${item.customerPhone}</a>` : ''}
+            </div>
+            <div style="background: var(--surface-alt); padding: 12px; border-radius: 8px; border-left: 3px solid var(--primary);">
+              ${item.feedback || '<i>No text feedback</i>'}
+            </div>
+          </div>
+        `).join('');
+      } catch (err) {}
+    }
+
+    async function loadQrAndSettings() {
+      try {
+        const qrRes = await fetch(`${API_BASE}/api/qr?tenant=${activeTenantSlug}`).then(r => r.json());
+        $('qrImg').src = qrRes.data;
+
+        const s = await api('/api/admin/settings');
+        currentSettings = s;
+        $('dashSalonName').textContent = s.name;
+        $('posterSalonName').textContent = s.name;
+        $('posterTagline').textContent = s.tagline || 'Google Verified Business';
+
+        $('setSalonName').value = s.name || '';
+        $('setTagline').value = s.tagline || '';
+        $('setAddress').value = s.address || '';
+        $('setPhone').value = s.phone || '';
+      } catch (err) {}
+    }
+
+    $('downloadPosterBtn').onclick = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1200; // 4K HD Quality
+      canvas.height = 1500;
+
+      const grad = ctx.createLinearGradient(0, 0, 1200, 1500);
+      grad.addColorStop(0, '#1f121b');
+      grad.addColorStop(1, '#3b1123');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1200, 1500);
+
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 16;
+      ctx.strokeRect(30, 30, 1140, 1440);
+
+      ctx.textAlign = 'center';
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 56px Georgia, serif';
+      ctx.fillText(currentSettings.name || 'GMB Business Profile', 600, 200);
+
+      ctx.fillStyle = '#e8cad8';
+      ctx.font = '30px sans-serif';
+      ctx.fillText(currentSettings.tagline || 'Google Verified Business', 600, 260);
+
+      const qrImg = $('qrImg');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(360, 360, 480, 480);
+      ctx.drawImage(qrImg, 390, 390, 420, 420);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 48px Georgia, serif';
+      ctx.fillText($('headlineInput').value, 600, 940);
+
+      ctx.fillStyle = '#d4af37';
+      ctx.font = '600 34px sans-serif';
+      ctx.fillText($('subheadlineInput').value, 600, 1010);
+
+      ctx.fillStyle = '#c5b6bf';
+      ctx.font = '26px sans-serif';
+      ctx.fillText(currentSettings.address || '', 600, 1340);
+
+      const link = document.createElement('a');
+      link.download = `${activeTenantSlug}_4K_HD_QR_Poster.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    $('copyQrLinkBtn').onclick = async () => {
+      const q = await fetch(`${API_BASE}/api/qr?tenant=${activeTenantSlug}`).then(r => r.json());
+      navigator.clipboard.writeText(q.url);
+      alert('Direct review link copied: ' + q.url);
+    };
+
+    $('saveSettingsBtn').onclick = async () => {
+      const payload = {
+        name: $('setSalonName').value,
+        tagline: $('setTagline').value,
+        address: $('setAddress').value,
+        phone: $('setPhone').value
+      };
+
+      if ($('setAdminPass').value.trim()) {
+        payload.adminPassword = $('setAdminPass').value.trim();
+      }
+
+      try {
+        await api('/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        alert('Settings saved!');
+        loadQrAndSettings();
+      } catch (err) {}
+    };
+
+    function loadAllDashboardData() {
+      loadStats();
+      loadReviews();
+      loadQrAndSettings();
+    }
+
+    if (token) showDashboard();
+    else showAuth();
+  </script>
+</body>
+</html>

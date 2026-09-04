@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GMB Review Booster Platform • ₹199/Month Autopay</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    :root {
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --bg-gradient: radial-gradient(circle at 50% -10%, #3d1428 0%, #1c0813 50%, #0c0208 100%);
+      --card-bg: rgba(255, 255, 255, 0.96);
+      --primary: #4a1329;
+      --accent-gold: #d4af37;
+      --gold-gradient: linear-gradient(135deg, #fae596 0%, #d4af37 50%, #99730c 100%);
+      --rose-gradient: linear-gradient(135deg, #7a2347 0%, #4a152d 100%);
+      --rose-light: #fdf0f5;
+      --rose-border: #f5d3e3;
+      --surface-alt: #fdf8fa;
+      --text-main: #1c1117;
+      --text-muted: #6b5a64;
+      --border: #eddce5;
+      --radius-md: 18px;
+      --radius-lg: 32px;
+      --radius-pill: 9999px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font-sans); background: var(--bg-gradient); color: var(--text-main); min-height: 100vh; line-height: 1.6; position: relative; padding: 36px 16px; }
+    body::before { content: ''; position: fixed; top: -120px; left: 50%; transform: translateX(-50%); width: 700px; height: 700px; background: radial-gradient(circle, rgba(212, 175, 55, 0.18) 0%, rgba(122, 35, 71, 0.25) 50%, transparent 80%); pointer-events: none; z-index: 0; }
+    
+    .container { width: 100%; max-width: 800px; margin: 0 auto; position: relative; z-index: 1; }
+    .card { background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: var(--radius-lg); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45); padding: 44px 36px; margin-bottom: 24px; text-align: center; position: relative; overflow: hidden; }
+    .brand-badge { width: 90px; height: 90px; border-radius: 28px; margin: 0 auto 18px; display: grid; place-items: center; background: var(--rose-gradient); color: #fff; font-family: var(--font-serif); font-weight: 700; font-size: 34px; letter-spacing: 1px; box-shadow: 0 12px 30px rgba(74, 19, 41, 0.4), 0 0 0 4px var(--accent-gold); }
+    
+    h1 { font-family: var(--font-serif); font-size: 38px; font-weight: 700; color: var(--primary); line-height: 1.2; margin-bottom: 10px; }
+    h2 { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: var(--primary); margin-bottom: 14px; }
+    .subtitle { font-size: 13px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 10px; }
+    .muted { color: var(--text-muted); font-size: 15px; }
+
+    .price-tag { display: inline-block; background: var(--gold-gradient); color: #111; font-weight: 800; font-size: 28px; padding: 8px 24px; border-radius: var(--radius-pill); margin: 16px 0; box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; border: none; border-radius: var(--radius-md); padding: 16px 28px; background: var(--rose-gradient); color: #ffffff; font-family: var(--font-sans); font-size: 16px; font-weight: 700; text-decoration: none; cursor: pointer; transition: all 0.25s ease; box-shadow: 0 6px 20px rgba(74, 19, 41, 0.28); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(74, 19, 41, 0.38); }
+    .btn-gold { background: var(--gold-gradient); color: #111111; box-shadow: 0 6px 20px rgba(212, 175, 55, 0.38); }
+    .btn-gold:hover { filter: brightness(1.06); box-shadow: 0 12px 30px rgba(212, 175, 55, 0.48); }
+    .btn-secondary { background: var(--rose-light); color: var(--primary); border: 1.5px solid var(--rose-border); }
+    .btn-block { width: 100%; }
+
+    .form-group { margin-bottom: 16px; text-align: left; }
+    label { display: block; font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 6px; }
+    input[type="text"], input[type="tel"], input[type="password"] { width: 100%; padding: 13px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font-sans); font-size: 15px; color: var(--text-main); background: var(--surface-alt); }
+    
+    .chip { border: 1.5px solid var(--border); background: var(--surface-alt); color: var(--text-main); padding: 8px 14px; border-radius: 9999px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <main class="container">
+
+    <!-- Main Registration Section -->
+    <section class="card">
+      <div class="brand-badge">GMB</div>
+      <div class="subtitle">Google Review Booster Platform</div>
+      <h1>Multiply Google 5-Star Reviews & Build Top Local Rank</h1>
+      <p class="muted">Instant 5-Star Google Maps redirection, HD countertop Standee QR codes, private feedback filtering, and automated GMB performance reporting.</p>
+
+      <div class="price-tag">
+        ₹199 / Month Autopay
+      </div>
+
+      <div class="chips">
+        <span class="chip">⭐ Instant 5-Star Google Redirect</span>
+        <span class="chip">🖼️ HD Printable Standee QR Poster</span>
+        <span class="chip">🔒 Private 1-3 Star Complaints Filter</span>
+        <span class="chip">🔄 Seamless Razorpay Autopay</span>
+      </div>
+
+      <!-- Registration Form -->
+      <div style="max-width: 480px; margin: 24px auto 0; background: #fff; padding: 28px; border-radius: var(--radius-md); border: 1px solid var(--border); box-shadow: 0 10px 30px rgba(0,0,0,0.06);">
+        <h3 style="font-family: var(--font-serif); font-size: 24px; color: var(--primary); margin-bottom: 16px;">⚡ Business Registration</h3>
+        
+        <form id="regForm" onsubmit="return false;">
+          <div class="form-group">
+            <label for="bizName">Business Name *</label>
+            <input id="bizName" type="text" placeholder="e.g. Divya Rathod Beauty Salon" required>
+          </div>
+
+          <div class="form-group">
+            <label for="ownerPhone">Phone Number *</label>
+            <input id="ownerPhone" type="tel" placeholder="e.g. 9856698533" required>
+          </div>
+
+          <div class="form-group">
+            <label for="ownerPass">Choose Account Password *</label>
+            <input id="ownerPass" type="password" value="5922" placeholder="Password" required>
+          </div>
+
+          <button type="submit" id="payBtn" class="btn btn-gold btn-block" style="margin-top: 10px; font-size: 17px;">
+            💳 Pay ₹199 & Enable Autopay
+          </button>
+        </form>
+      </div>
+
+      <!-- Quick Portals -->
+      <div style="margin-top: 32px; display: flex; flex-direction: column; gap: 12px; max-width: 480px; margin-left: auto; margin-right: auto;">
+        <a class="btn btn-secondary btn-block" href="/admin?tenant=divya-rathod-beauty-salon" target="_blank">
+          🔑 Business Owner Dashboard Login
+        </a>
+        <a class="btn btn-secondary btn-block" href="/r/divya-rathod-beauty-salon" target="_blank">
+          ⭐ View Customer Review Page Demo
+        </a>
+      </div>
+    </section>
+
+    <!-- Success Modal after Razorpay Subscription Autopay -->
+    <section id="successCard" class="card hidden">
+      <div style="font-size: 56px; margin-bottom: 12px;">🎉 🚀</div>
+      <h1>Registration & Autopay Successful!</h1>
+      <div style="background: #fef9c3; border: 1px solid #fef08a; padding: 16px 20px; border-radius: var(--radius-md); margin: 20px 0; color: #854d0e; font-weight: 600; text-align: left;">
+        ⏳ <b>Status: Pending Setup</b><br>
+        Your ₹199/month Autopay subscription is active. Our management team is configuring your Google Place ID and GMB profile. Your HD Standee QR Code and Live Redirect will be activated shortly!
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; max-width: 440px; margin: 0 auto;">
+        <a id="resAdminLink" class="btn btn-gold btn-block" href="" target="_blank">
+          🔑 Open Your Business Dashboard
+        </a>
+      </div>
+    </section>
+
+    <footer style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 24px;">
+      <p>© 2026 GMB Review Booster Platform • Secured by Razorpay Autopay & Firestore</p>
+    </footer>
+  </main>
+
+  <script>
+    const API_BASE = (location.protocol.startsWith('http') && location.port === '3000')
+      ? ''
+      : `${location.protocol.startsWith('http') ? location.protocol : 'http:'}//${location.hostname || '127.0.0.1'}:3000`;
+
+    const $ = id => document.getElementById(id);
+
+    $('regForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const businessName = $('bizName').value.trim();
+      const phone = $('ownerPhone').value.trim();
+      const password = $('ownerPass').value.trim();
+
+      if (!businessName || !phone || !password) {
+        alert('Please fill out all fields.');
+        return false;
+      }
+
+      $('payBtn').disabled = true;
+      $('payBtn').textContent = 'Initiating Razorpay Autopay...';
+
+      try {
+        // Fetch Razorpay config
+        const rzpConfig = await fetch(API_BASE + '/api/razorpay/config').then(r => r.json());
+
+        // Create Autopay Subscription
+        let subscriptionId = '';
+        try {
+          const subRes = await fetch(API_BASE + '/api/razorpay/create-subscription', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ businessName, phone })
+          }).then(r => r.json());
+
+          if (subRes && subRes.subscription && subRes.subscription.id) {
+            subscriptionId = subRes.subscription.id;
+          }
+        } catch (err) {
+          console.warn('Subscription API notice:', err);
+        }
+
+        const options = {
+          key: rzpConfig.key || 'rzp_live_TWfdHUXcUNhDvk',
+          name: rzpConfig.name || 'GMB Review Booster Platform',
+          description: '₹199/Month Autopay Subscription',
+          handler: async function (response) {
+            // Verify subscription & create account in pending_setup state
+            const verifyRes = await fetch(API_BASE + '/api/razorpay/verify-subscription', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id || `pay_live_${Date.now()}`,
+                razorpay_subscription_id: response.razorpay_subscription_id || subscriptionId,
+                razorpay_signature: response.razorpay_signature || 'sig_live',
+                businessName,
+                phone,
+                password
+              })
+            }).then(r => r.json());
+
+            if (verifyRes.ok) {
+              $('resAdminLink').href = verifyRes.adminUrl;
+              $('successCard').classList.remove('hidden');
+              $('successCard').scrollIntoView({ behavior: 'smooth' });
+            } else {
+              alert('Payment verification failed.');
+            }
+          },
+          prefill: {
+            contact: phone
+          },
+          theme: {
+            color: '#4a1329'
+          }
+        };
+
+        if (subscriptionId && !subscriptionId.startsWith('sub_mock_')) {
+          options.subscription_id = subscriptionId;
+        } else {
+          options.amount = 19900; // ₹199 in paise
+          options.currency = 'INR';
+        }
+
+        if (typeof Razorpay !== 'undefined') {
+          const rzp = new Razorpay(options);
+          rzp.on('payment.failed', function (response){
+            alert('Payment / Autopay Notice: ' + (response.error ? response.error.description : 'Cancelled'));
+          });
+          rzp.open();
+        } else {
+          alert('Razorpay SDK loading... Please click again in 2 seconds.');
+        }
+      } catch (err) {
+        console.error('Error starting Razorpay:', err);
+        alert('Error starting Razorpay checkout. Please check internet connection.');
+      } finally {
+        $('payBtn').disabled = false;
+        $('payBtn').textContent = '💳 Pay ₹199 & Enable Autopay';
+      }
+
+      return false;
+    });
+  </script>
+</body>
+</html>
