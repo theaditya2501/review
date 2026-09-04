@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Master Control Panel • GMB Multi-Tenant Platform</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
@@ -180,9 +181,7 @@
   </main>
 
   <script>
-    const API_BASE = (location.protocol.startsWith('http') && location.port === '3000')
-      ? ''
-      : `${location.protocol.startsWith('http') ? location.protocol : 'http:'}//${location.hostname || '127.0.0.1'}:3000`;
+    const API_BASE = '';
 
     let masterToken = sessionStorage.masterToken || '';
     const $ = id => document.getElementById(id);
