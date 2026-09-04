@@ -142,9 +142,14 @@
             <h2>Registered Business Accounts & Place ID Setup</h2>
             <p class="muted">Update Place ID, trigger Groq AI GMB analysis, or pause/start service.</p>
           </div>
-          <button id="refreshBtn" class="btn btn-secondary btn-sm">
-            🔄 Refresh List
-          </button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button onclick="openCreateModal()" class="btn btn-gold btn-sm">
+              ➕ Create Business
+            </button>
+            <button id="refreshBtn" class="btn btn-secondary btn-sm">
+              🔄 Refresh List
+            </button>
+          </div>
         </div>
 
         <div id="bizList">
@@ -177,6 +182,57 @@
       </div>
 
     </section>
+
+    <!-- Create Business Modal -->
+    <div id="createModal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+      <div class="card" style="max-width: 520px; width: 100%; margin: 0; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="margin:0;">➕ Create New Business</h2>
+          <button onclick="closeCreateModal()" class="btn btn-secondary btn-sm" style="padding:4px 10px;">✕</button>
+        </div>
+        <p class="muted" style="margin-bottom: 16px;">New business will be initialized in <b>Pending Setup</b> status without Place ID or active QR.</p>
+        <form id="createBizForm" onsubmit="submitCreateBusiness(event);">
+          <div class="form-group">
+            <label>Business Name *</label>
+            <input id="newBizName" type="text" placeholder="e.g. Thushr Gas Agency" required>
+          </div>
+          <div class="form-group">
+            <label>Category *</label>
+            <input id="newBizCategory" type="text" placeholder="e.g. Gas Distribution & Delivery" required>
+          </div>
+          <div class="form-group">
+            <label>Owner Password *</label>
+            <input id="newBizPassword" type="password" placeholder="Create secure password for business owner" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>Phone</label>
+              <input id="newBizPhone" type="text" placeholder="+91 9876543210">
+            </div>
+            <div class="form-group">
+              <label>Tagline</label>
+              <input id="newBizTagline" type="text" placeholder="Fast & Safe Delivery">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Address</label>
+            <input id="newBizAddress" type="text" placeholder="Shop 4, Main Market, Mumbai">
+          </div>
+          <div class="form-group">
+            <label>Website</label>
+            <input id="newBizWebsite" type="text" placeholder="https://example.com">
+          </div>
+          <div class="form-group">
+            <label>Logo URL (Optional)</label>
+            <input id="newBizLogo" type="text" placeholder="https://example.com/logo.png">
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <button type="button" onclick="closeCreateModal()" class="btn btn-secondary">Cancel</button>
+            <button type="submit" id="createBizSubmitBtn" class="btn btn-gold">Create Business (Pending Setup)</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
   </main>
 
@@ -211,6 +267,59 @@
       $('dashCard').classList.remove('hidden');
       loadBusinesses();
       loadPaymentHistory();
+    }
+
+    function openCreateModal() {
+      $('createModal').classList.remove('hidden');
+      $('createModal').style.display = 'flex';
+    }
+
+    function closeCreateModal() {
+      $('createModal').classList.add('hidden');
+      $('createModal').style.display = 'none';
+      $('createBizForm').reset();
+    }
+
+    async function submitCreateBusiness(e) {
+      e.preventDefault();
+      const name = $('newBizName').value.trim();
+      const category = $('newBizCategory').value.trim();
+      const password = $('newBizPassword').value.trim();
+      const phone = $('newBizPhone').value.trim();
+      const tagline = $('newBizTagline').value.trim();
+      const address = $('newBizAddress').value.trim();
+      const website = $('newBizWebsite').value.trim();
+      const logoUrl = $('newBizLogo').value.trim();
+
+      if (!name || !category || !password) {
+        alert('Please fill out all required fields (*)');
+        return;
+      }
+
+      $('createBizSubmitBtn').disabled = true;
+      $('createBizSubmitBtn').textContent = 'Creating...';
+
+      try {
+        const res = await api('/api/master/businesses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, category, password, phone, tagline, address, website, logoUrl })
+        });
+
+        if (res.ok) {
+          alert(`✅ Business '${res.business.name}' created in PENDING_SETUP state!\nSlug: ${res.business.slug}`);
+          closeCreateModal();
+          loadBusinesses();
+          loadPaymentHistory();
+        } else {
+          alert('❌ ' + (res.error || 'Failed to create business'));
+        }
+      } catch (err) {
+        alert('❌ ' + (err.error || err.message || 'Error creating business'));
+      } finally {
+        $('createBizSubmitBtn').disabled = false;
+        $('createBizSubmitBtn').textContent = 'Create Business (Pending Setup)';
+      }
     }
 
     $('loginForm').onsubmit = async () => {
@@ -301,7 +410,6 @@
           statusText = 'Service Paused';
         }
 
-        const adminPass = item.adminPassword || '5922';
         const escapedName = (item.name || '').replace(/'/g, "\\'");
         const adminUrl = item.adminUrl || (window.location.origin + '/admin?tenant=' + item.slug);
         const reviewUrl = item.reviewUrl || (window.location.origin + '/r/' + item.slug);
@@ -310,12 +418,12 @@
           <div class="biz-card">
             <div class="biz-header">
               <div>
-                <span class="subtitle" style="margin:0;">Slug: ${item.slug}</span>
+                <span class="subtitle" style="margin:0;">Slug: ${item.slug} | Category: <b>${item.category || 'General Business'}</b></span>
                 <h3 style="font-family: var(--font-serif); font-size: 22px; color: var(--primary); margin: 2px 0;">${item.name}</h3>
                 <small class="muted">
-                  Phone: <b>${item.phone || 'N/A'}</b> | 
-                  Password: <code style="background:#f3e8ff; color:#6b21a8; padding:2px 6px; border-radius:4px; font-weight:bold;">${adminPass}</code> | 
-                  Plan: <b>${item.plan || '₹199/mo'}</b>
+                  Setup Status: <b>${item.status === 'pending_setup' ? 'Pending Google Verification' : 'Active'}</b> | 
+                  Google Place ID: <b>${item.googlePlaceId || 'Not Configured'}</b> | 
+                  QR: <b>${item.status === 'active' ? 'Active' : 'Pending Setup'}</b>
                 </small>
               </div>
               <div>
@@ -331,11 +439,11 @@
                 </div>
                 <div class="form-group" style="flex: 1.2; margin-bottom: 0; min-width: 140px;">
                   <label style="font-size: 13px;">Category</label>
-                  <input id="category-${item.slug}" type="text" value="${item.category || 'Gas Agency'}" placeholder="e.g. Gas Agency, Salon">
+                  <input id="category-${item.slug}" type="text" value="${item.category || ''}" placeholder="e.g. Gas Agency, Dental Clinic">
                 </div>
                 <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 120px;">
-                  <label style="font-size: 13px;">Owner Password</label>
-                  <input id="adminPass-${item.slug}" type="text" value="${adminPass}" placeholder="e.g. 5922">
+                  <label style="font-size: 13px;">Reset Owner Password</label>
+                  <input id="adminPass-${item.slug}" type="password" value="" placeholder="Leave blank to keep existing">
                 </div>
               </div>
 
@@ -347,7 +455,7 @@
 
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button onclick="savePlaceIdAndActivate('${item.slug}')" class="btn btn-gold btn-sm">
-                  💾 Save Details & Update Password
+                  🔍 Configure Google Profile & Verify
                 </button>
 
                 <button onclick="runGroqAnalysis('${item.slug}')" class="btn btn-secondary btn-sm">
@@ -371,6 +479,9 @@
             </div>
 
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+              <button onclick="previewTenantQr('${item.slug}')" class="btn btn-gold btn-sm">
+                📱 Preview QR & Standee
+              </button>
               <a href="${reviewUrl}" target="_blank" class="btn btn-secondary btn-sm">
                 ⭐ Customer Review Link
               </a>
@@ -383,21 +494,68 @@
       }).join('');
     }
 
-    async function savePlaceIdAndActivate(slug) {
-      const placeId = $(`placeId-${slug}`).value.trim();
-      const category = $(`category-${slug}`) ? $(`category-${slug}`).value.trim() : 'Gas Agency';
+    async function previewTenantQr(slug) {
+        try {
+          const qrRes = await fetch(`${API_BASE}/api/qr?tenant=${slug}`).then(r => r.json());
+          $('qrModalName').textContent = qrRes.businessName || slug;
+          $('qrModalCategory').textContent = qrRes.category || 'General Business';
+          $('qrModalInitials').textContent = qrRes.initials || 'GB';
+
+          const container = $('qrModalPreviewContainer');
+          const dlBtn = $('qrDownloadBtn');
+
+          if (qrRes.active && qrRes.data) {
+            container.innerHTML = `
+              <img src="${qrRes.data}" alt="${qrRes.businessName} QR Code" style="width: 200px; height: 200px; border-radius: 8px;">
+              <p style="font-size:12px; color:#555; margin:10px 0 0 0; word-break:break-all;"><b>Direct Review URL:</b><br>${qrRes.url}</p>
+            `;
+            dlBtn.style.display = 'inline-flex';
+            dlBtn.href = qrRes.data;
+            dlBtn.download = `${slug}-review-qr.png`;
+          } else {
+            container.innerHTML = `
+              <div style="padding: 24px; text-align: center; color: #b45309; background: #fffbeb; border: 2px dashed #f59e0b; border-radius: 12px; width: 100%;">
+                <div style="font-size: 36px; margin-bottom: 8px;">⏳</div>
+                <strong style="font-size: 15px;">QR Code Pending Setup</strong>
+                <p style="font-size: 12px; opacity: 0.85; margin: 6px 0 0 0; color: #78350f;">
+                  Enter a valid Google Place ID and click "Save Details & Activate" to unlock the active customer review QR code.
+                </p>
+              </div>
+            `;
+            dlBtn.style.display = 'none';
+          }
+
+          $('qrModal').classList.remove('hidden');
+          $('qrModal').style.display = 'flex';
+        } catch (err) {
+          alert('Failed to load QR preview for ' + slug);
+        }
+      }
+
+      function closeQrModal() {
+        $('qrModal').classList.add('hidden');
+        $('qrModal').style.display = 'none';
+      }
+
+    async function savePlaceIdAndActivate(slug, targetStatus = 'active') {
+      const placeId = $(`placeId-${slug}`) ? $(`placeId-${slug}`).value.trim() : '';
+      const category = $(`category-${slug}`) ? $(`category-${slug}`).value.trim() : '';
       const adminPassword = $(`adminPass-${slug}`) ? $(`adminPass-${slug}`).value.trim() : '';
       try {
-        await api('/api/master/businesses/' + slug, {
+        const res = await api('/api/master/businesses/' + slug, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ googlePlaceId: placeId, category, adminPassword, status: 'active' })
+          body: JSON.stringify({ googlePlaceId: placeId, category, adminPassword, status: targetStatus })
         });
-        alert('✅ Business details, category & owner password updated successfully!');
-        loadBusinesses();
-        loadPaymentHistory();
+        if (res.ok) {
+          alert(`✅ Business details saved! Status: ${targetStatus.toUpperCase()}`);
+          loadBusinesses();
+          loadPaymentHistory();
+        } else {
+          alert('❌ ' + (res.error || 'Invalid Google Place ID'));
+        }
       } catch (e) {
-        alert('Failed to update business');
+        alert('❌ ' + (e.error || e.message || 'Failed to update business. Please verify Google Place ID format.'));
       }
     }
 

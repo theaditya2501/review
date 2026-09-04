@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rate Your Experience • Divya Rathod Beauty Salon</title>
+  <title>Rate Your Experience • Google Business Review Portal</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✨</text></svg>">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
@@ -577,51 +577,23 @@
         <div id="detailsForm" class="hidden fade-in"
           style="text-align: left; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px;">
 
-          <!-- Visual Service Selector Cards -->
+          <!-- Dynamic Category Selector Cards -->
           <div class="form-group">
-            <label>What Service Did You Get? 💇‍♀️</label>
+            <label id="serviceSelectLabel">Select Service / Topic 🏷️</label>
             <div id="serviceCardsGrid" class="service-cards-grid">
-              <div class="service-card-item active" data-service="Haircut & Hair Styling">
-                <span class="service-card-icon">✂️</span>
-                <span class="service-card-label">Haircut & Styling</span>
-              </div>
-              <div class="service-card-item" data-service="Hair Spa & Keratin">
-                <span class="service-card-icon">💆‍♀️</span>
-                <span class="service-card-label">Hair Spa & Keratin</span>
-              </div>
-              <div class="service-card-item" data-service="Hair Colouring & Highlights">
-                <span class="service-card-icon">🎨</span>
-                <span class="service-card-label">Hair Colouring</span>
-              </div>
-              <div class="service-card-item" data-service="HD & Airbrush Bridal Makeup">
-                <span class="service-card-icon">💄</span>
-                <span class="service-card-label">Bridal Makeup</span>
-              </div>
-              <div class="service-card-item" data-service="Luxury Facial & Skincare">
-                <span class="service-card-icon">🧖‍♀️</span>
-                <span class="service-card-label">Facial & Skincare</span>
-              </div>
-              <div class="service-card-item" data-service="Nail Extensions & Spa">
-                <span class="service-card-icon">💅</span>
-                <span class="service-card-label">Nail Art & Spa</span>
-              </div>
-              <div class="service-card-item" data-service="Body Waxing & Threading">
-                <span class="service-card-icon">🌿</span>
-                <span class="service-card-label">Waxing & Threading</span>
-              </div>
+              <!-- Rendered dynamically per business category -->
             </div>
           </div>
 
-          <!-- 10 Per-Service Ready-Made Review Preset Options -->
+          <!-- Category Ready-Made Review Preset Options -->
           <div class="form-group">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <label style="margin:0;">Select A 5-Star Review Option (10 Ready Options) 🌟</label>
+              <label style="margin:0;">Select A 5-Star Review Option (Writing Assistance) 🌟</label>
               <span id="presetCategoryLabel"
-                style="font-size: 12px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase;">Haircut
-                & Styling</span>
+                style="font-size: 12px; font-weight: 700; color: var(--accent-gold); text-transform: uppercase;">Review Suggestions</span>
             </div>
             <div id="presetsContainer" class="presets-container">
-              <!-- Rendered dynamically per selected service -->
+              <!-- Rendered dynamically via Groq AI or clean manual notice -->
             </div>
           </div>
 
@@ -650,7 +622,7 @@
 
       <!-- Footer Info -->
       <footer style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 10px;">
-        <p>Divya Rathod Beauty Salon • Adani Shantigram / Vaishnodevi Circle, Ahmedabad</p>
+        <p id="footerText">Verified Google Business Profile</p>
       </footer>
     </div>
   </main>
@@ -662,103 +634,8 @@
       : `${location.protocol.startsWith('http') ? location.protocol : 'http:'}//${location.hostname || '127.0.0.1'}:3000`;
 
     let selectedRating = 0;
-    let selectedService = 'Haircut & Hair Styling';
-    let selectedPresetIndex = 0;
-    let googleReviewUrl = 'https://www.google.com/maps/search/?api=1&query=Divya+Rathod+Beauty+Salon+Ahmedabad';
-
-    // 10 Curated Luxury 5-Star Preset Reviews FOR EACH SERVICE (80 Options Total)
-    const servicePresets = {
-      "Haircut & Hair Styling": [
-        { title: "✨ Precision Haircut & Perfect Styling", text: "I had an incredible haircut experience at Divya Rathod Beauty Salon! The stylist carefully assessed my hair texture and gave me a chic, effortless cut that frames my face perfectly. The salon is beautifully maintained, hygienic, and luxurious. 10/10 service!" },
-        { title: "💇 Layered Haircut with Blowdry Finish", text: "Got my layered haircut and blowdry styling done here and I am obsessed with the volume! The staff is exceptionally warm, professional, and knowledgeable. They gave fantastic hair care tips. Will definitely be recommending to all my friends!" },
-        { title: "👑 VIP Hair Consultation & Transformation", text: "Hands down the best hair styling salon in Ahmedabad! Divya and her team give genuine recommendations without pushing extra services. My haircut turned out exactly as I envisioned—sleek, modern, and healthy looking. Wonderful ambiance!" },
-        { title: "🌟 Refreshing New Haircut Experience", text: "Visited Divya Rathod Beauty Salon for a hair makeover and I couldn't be happier! The haircut was done with extreme precision, leaving my hair bouncy and full of life. Punctual staff and spotless hygiene standards." },
-        { title: "💇‍♀️ Expert Styling for Special Event", text: "Got my hair styled for a family function and it stayed flawless all evening! The hair artists here really know how to create elegant curls and voluminous styles that hold. Exceptional hospitality and royal treatment." },
-        { title: "✂️ Painless Trim & Split-End Care", text: "Super subtle trim that preserved my hair length while completely removing dry split ends! My hair feels so light, soft, and bouncy. The salon ambiance is serene and spotless. Highly professional team." },
-        { title: "💎 High-End Salon Experience & Haircut", text: "From the welcoming reception to the final hair mirror reveal, everything was top tier! The haircut was tailored to my daily routine so I can style it easily at home. Worth every single penny!" },
-        { title: "🌸 Trendy Hair Styling & Curtain Bangs", text: "Got curtain bangs and long layers at Divya Rathod Beauty Salon. The stylist took great care in cutting each section carefully. My hair looks super stylish and healthy now. Absolutely loved it!" },
-        { title: "✨ Voluminous Blowout & Shine", text: "The blowout after my haircut was divine! My hair felt silky smooth and had amazing shine. Very polite and courteous staff who pay attention to every minor detail. Truly a 5-star experience!" },
-        { title: "💖 Warm Hospitality & Perfect Haircut", text: "Great hospitality and expert hair artists! They listened to what I wanted and executed the haircut with perfection. Clean environment, pleasant fragrance, and friendly atmosphere." }
-      ],
-
-      "Hair Spa & Keratin": [
-        { title: "💆‍♀️ Blissful Hair Spa & Head Massage", text: "The hair spa treatment at Divya Rathod Beauty Salon was pure bliss! My hair feels intensely hydrated, silky, and frizz-free. The relaxing head and shoulder massage was so relaxing. Spotless hygiene standards!" },
-        { title: "✨ Silky Smoothening & Keratin Results", text: "Got the Keratin treatment done here and my hair is now super smooth, manageable, and mirror-shiny! No harsh chemical smell, only premium products used. My hair texture has transformed completely." },
-        { title: "🌿 Deep Conditioning & Damage Repair", text: "My dull, dry hair feels completely rejuvenated after the hair spa session. The deep conditioning mask nourished my curls without weighing them down. The salon environment is clean and peaceful." },
-        { title: "👑 Royal Keratin Hair Treatment", text: "Worth every rupee! The Keratin treatment gave my frizzy hair a sleek, salon-finish look that lasts. The technicians are thoroughly trained, gentle, and explained every step of the process." },
-        { title: "💎 Frizz Control & Intensive Nourishment", text: "Say goodbye to frizzy hair days! Divya Rathod Salon’s hair spa gave my locks intense moisture and glossy shine. Polite staff, prompt timing, and wonderful pampering session." },
-        { title: "🌸 Relaxing Aromatherapy Hair Spa", text: "An absolute treat for hair and mind! The steam treatment and hair spa cream left my hair feeling feather-light and soft. Courteous staff who ensure you feel completely comfortable throughout." },
-        { title: "✨ Post-Colour Moisture Hair Spa", text: "Took a hair spa right after my colouring session and it restored full moisture to my scalp and hair strands. My hair feels healthy and looks vibrant. Highly recommend their hair treatments!" },
-        { title: "💆 Hydrating Scalp & Hair Therapy", text: "Extremely scalp-soothing spa treatment! It helped clear all scalp buildup and left my hair soft and bouncy. Super clean aesthetic salon with royal hospitality." },
-        { title: "🌟 Professional Keratin Care", text: "Divya Rathod Beauty Salon is the ultimate destination for Keratin and smoothening in Ahmedabad! Smooth process, gentle application, and long-lasting glossy results." },
-        { title: "💖 Ultimate Pampering Hair Spa Session", text: "Loved every minute of my hair spa session! The staff is attentive, soft-spoken, and highly skilled. My hair feels healthy, shiny, and super easy to manage daily." }
-      ],
-
-      "Hair Colouring & Highlights": [
-        { title: "🎨 Seamless Balayage & Highlights", text: "Best hair colouring studio in Ahmedabad! I got balayage highlights done and the tone blending is so seamless and natural. They used gentle, ammonia-free products that kept my hair healthy." },
-        { title: "✨ Vibrant Hair Colour & Rich Shine", text: "Got a full global hair colour and the shade turned out rich, radiant, and exactly as promised! Divya helped me choose a shade that complements my skin tone perfectly. 5-star expertise!" },
-        { title: "👑 Luxurious Root Touchup & Gloss", text: "Quick, flawless root touchup and glossing treatment. My hair looks uniform, glossy, and healthy. Zero scalp irritation and pleasant salon ambiance." },
-        { title: "🌸 Trendy Caramel Highlights", text: "Got caramel highlights and I am receiving so many compliments! The hair artists here work with immense precision and care. Spotless salon hygiene and high-end feel." },
-        { title: "💎 Damage-Free Hair Transformation", text: "I was nervous about bleaching my hair, but the team at Divya Rathod Salon ensured total hair protection using bond builders. My hair looks stylish without any dry damage!" },
-        { title: "🌟 Expert Colour Correction", text: "Came in for a hair colour correction after a bad past experience elsewhere, and Divya transformed my hair into a gorgeous warm brunette shade. Eternally grateful!" },
-        { title: "💇‍♀️ Chic Money-Piece & Face Framing", text: "Loved the face-framing highlights! It brightened up my entire face instantly. Professional guidance, transparent pricing, and royal ambiance." },
-        { title: "✨ Glossy Global Hair Shade", text: "Rich, deep color with incredible shine! The hair wash and conditioning post-colouring made my hair feel softer than ever before. Outstanding service!" },
-        { title: "🎨 Customised Hair Colour Toning", text: "The hair colorist customized a custom cool-toned shade for me. It looks so sophisticated and elegant! Very soft-spoken staff and zero waiting delay." },
-        { title: "💖 Outstanding Hair Colouring Studio", text: "If you want premium, luxury hair color in Ahmedabad, look no further than Divya Rathod Beauty Salon! Top quality products, warm staff, and stunning results." }
-      ],
-
-      "HD & Airbrush Bridal Makeup": [
-        { title: "💄 Flawless HD Bridal Makeup", text: "Divya created sheer magic for my event! The HD makeup felt feather-light on my skin, looked glowing in photos, and didn't budge all night. Truly the finest bridal makeup artist!" },
-        { title: "✨ Radiant Airbrush Makeup & Hair Styling", text: "Got Airbrush makeup done for a wedding and it gave a camera-ready, airbrushed finish without looking cakey. The hair styling and draping were also perfection!" },
-        { title: "👑 Royal Bridal Makeover & Draping", text: "Divya Rathod Beauty Salon is the ultimate bridal destination! From skin prep to final lip shade, everything was executed with precision. Everyone praised my bridal look." },
-        { title: "🌸 Subtle & Elegant Party Makeup", text: "I wanted a soft, dewy glam look for a reception and they nailed it completely! Accentuated my features naturally. High-end international cosmetics used." },
-        { title: "💎 Long-Lasting Glow & Glamour", text: "My makeup stayed intact for over 10 hours despite the heat! The team is calm, polite, and extremely skilled under event pressure. 100% recommended for brides!" },
-        { title: "🌟 Natural Dewy Finish Makeup", text: "Loved how clean and natural the base makeup looked! No heavy feel at all. The eye makeup was mesmerising. Beautiful bridal studio atmosphere." },
-        { title: "💄 Expert Saree/Lehenga Draping", text: "Along with makeup, their lehenga draping and hair accessory setting were rock solid! Felt like a queen throughout the function. Exceptional service!" },
-        { title: "✨ Premium International Makeup Products", text: "Only top-tier brands (MAC, Huda, Charlotte Tilbury) were used. Hygenic brushes, single-use applicators, and super clean vanity setup. 5 stars!" },
-        { title: "👑 Engagement & Sangeet Makeover", text: "Got my engagement makeup done by Divya. She tailored the look according to my dress color and personal style. Received endless compliments!" },
-        { title: "💖 Unmatched Bridal Artistry in Ahmedabad", text: "Divya Rathod Beauty Salon provides unmatched bridal artistry! Punctual team, soothing environment, and flawless makeup that makes you feel confident." }
-      ],
-
-      "Luxury Facial & Skincare": [
-        { title: "🧖‍♀️ Glowing Luxury Facial Experience", text: "Had an amazing luxury facial today! My skin feels deeply cleansed, hydrated, and visibly glowing. The facial massage techniques were super relaxing. Spotless salon hygiene!" },
-        { title: "✨ Hydrating Skincare & Instant Radiance", text: "My skin had instant radiance and softness right after the facial. The aesthetician analyzed my skin type before choosing products. Polite staff and soothing ambiance." },
-        { title: "🌿 Deep Pore Cleanup & Blackhead Removal", text: "Gentle and pain-free cleanup session! Cleared all blackheads and clogged pores without leaving red marks. My skin feels fresh and smooth." },
-        { title: "👑 Anti-Aging & Skin Tightening Facial", text: "The premium anti-aging facial gave my skin a firm, lifted, and youthful appearance. Premium botanical skincare products used with expert care." },
-        { title: "💎 Brightening De-Tan Facial Care", text: "Effective de-tan facial! Removed sun tanning and restored my skin's even tone. The cooling mask at the end was so refreshing. Highly recommended!" },
-        { title: "🌸 Soothing Sensitive Skin Treatment", text: "I have sensitive skin, but the aesthetician took utmost care using calming, non-irritating formulas. My skin feels soft, supple, and healthy." },
-        { title: "🌟 Relaxing Facial & Neck Massage", text: "The facial and lymphatic neck massage was pure relaxation. Left the salon feeling rejuvenated with glowing, translucent skin." },
-        { title: "🧖 Dermaplanning & Glass Skin Facial", text: "Achieved the coveted glass skin look! Smooth exfoliation followed by deep serum infusion. Spotless treatment room and peaceful ambiance." },
-        { title: "✨ Pre-Event Instant Glow Facial", text: "Took a glow facial 2 days before an event and my makeup sat so smoothly on my skin! Perfect prep for special occasions." },
-        { title: "💖 Top Skincare Salon in Ahmedabad", text: "Divya Rathod Beauty Salon is my favourite spot for facials and skincare! Attentive staff, hygienic setup, and noticeable skin results every time." }
-      ],
-
-      "Nail Extensions & Spa": [
-        { title: "💅 Stunning Gel Nail Extensions", text: "Incredible gel nail extension session! The nail artist was so precise with shape, length, and cuticle care. The finish is smooth and super durable." },
-        { title: "✨ Trendy Nail Art & Glitter Finish", text: "Got custom nail art with French tips and glitter accents. It turned out even better than my Pinterest reference picture! Huge range of gel polish shades." },
-        { title: "👑 Luxury Hand & Nail Spa Treatment", text: "The hand spa and manicure left my hands so soft, hydrated, and neatly manicured. Courteous staff who take great care in hygiene." },
-        { title: "🌸 Long-Lasting Acrylic Extensions", text: "My acrylic extensions have lasted over 3 weeks without chipping or lifting! Superior quality products and master craftsmanship." },
-        { title: "💎 Chic Chrome & Ombre Nail Design", text: "Tried chrome ombre nails for the first time and I'm obsessed! Clean salon environment, polite nail tech, and zero delay." },
-        { title: "🌟 Pampering Pedicure & Foot Spa", text: "The foot spa and pedicure was extremely relaxing! Removed all dead skin and left my feet smooth and glowing. Great foot massage." },
-        { title: "💅 Gel Overlay & Natural Nail Care", text: "Got a protective gel overlay on my natural nails. Strong, glossy, and beautifully shaped. Excellent nail salon service in Ahmedabad!" },
-        { title: "✨ Quick Gel Polish Change", text: "Quick gel polish application with flawless curing! Beautiful shiny finish and zero bubbling. Very professional staff." },
-        { title: "👑 Bridal Nail Art & Stone Work", text: "Got my bridal nail art done with intricate stone work. It looked royal and matched my wedding attire seamlessly. Highly recommended!" },
-        { title: "💖 5-Star Nail Studio Experience", text: "Divya Rathod Beauty Salon offers the best nail extension and nail art service! Hygienic tools, soft-spoken technicians, and long-lasting results." }
-      ],
-
-      "Body Waxing & Threading": [
-        { title: "🌿 Hygienic Rica Waxing Experience", text: "Super smooth, painless Rica waxing session! The beautician was gentle, quick, and ensured minimum discomfort. Clean single-use spatulas and hygienic room." },
-        { title: "✨ Precise Eyebrow & Facial Threading", text: "Perfect eyebrow shaping! They maintained my natural brow thickness while creating a clean, defined arch. Gentle threading with minimal redness." },
-        { title: "👑 Full Body Waxing & After-Care", text: "Got full body Rica chocolate wax done. It removed tiny hairs easily and left my skin smooth, moisturized, and glowing. Great after-wax soothing lotion applied!" },
-        { title: "🌸 Painless Peel-Off Waxing", text: "Peel-off wax for sensitive areas was practically painless! The staff is well-trained, polite, and respects client privacy completely." },
-        { title: "💎 Clean & Private Salon Aesthetics", text: "Impressed by the hygiene standards! Clean bed covers, fresh towels, sanitized tools, and pleasant ambient scent. 10/10 professionalism." },
-        { title: "🌟 Gentle Upper Lip & Forehead Threading", text: "Quick and gentle facial threading! No cuts, no swelling. Soft-spoken staff who pay attention to detail." },
-        { title: "🌿 Honey Waxing & De-Tan Treatment", text: "Smooth honey waxing followed by a cooling de-tan pack. Skin feels velvety soft and even-toned. Punctual timing with zero wait." },
-        { title: "✨ Professional & Courteous Beauticians", text: "The beauticians at Divya Rathod Salon are soft-spoken, patient, and very skilled. Made me feel comfortable right away." },
-        { title: "👑 Quick Pre-Travel Grooming Package", text: "Got my waxing, threading, and manicure done before a vacation. Seamless service coordination with zero rush. Excellent job!" },
-        { title: "💖 Top Grooming & Waxing Salon", text: "My go-to place for monthly grooming! Always consistent in quality, hygiene, and courteous service. Highly recommended salon!" }
-      ]
-    };
+    let selectedService = '';
+    let selectedPresetIndex = 0    let currentBusinessName = 'Business';
 
     const ratingDetails = {
       1: { text: "💔 Unsatisfactory", class: "r-1" },
@@ -776,219 +653,241 @@
     const presetsContainer = document.getElementById('presetsContainer');
     const submitBtn = document.getElementById('submitBtn');
     const successContainer = document.getElementById('successContainer');
-    const serviceCards = document.querySelectorAll('.service-card-item');
 
-    const pathParts = window.location.pathname.split('/');
-    let currentTenantSlug = 'divya-rathod-beauty-salon';
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    let currentTenantSlug = '';
     if (pathParts.includes('r') && pathParts[pathParts.indexOf('r') + 1]) {
       currentTenantSlug = pathParts[pathParts.indexOf('r') + 1];
     } else {
       const urlParams = new URLSearchParams(window.location.search);
-      currentTenantSlug = urlParams.get('tenant') || 'divya-rathod-beauty-salon';
+      currentTenantSlug = urlParams.get('tenant') || urlParams.get('slug') || '';
     }
     let currentPlaceId = '';
+    let dynamicCategories = [];
+    let selectedCategoryIndex = 0;
 
-    window.copyTextToClipboard = function(text) {
-      if (!text) text = feedbackText.value || 'Exceptional service!';
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text);
-        } else {
-          const tempInput = document.createElement('textarea');
-          tempInput.value = text;
-          document.body.appendChild(tempInput);
-          tempInput.select();
-          document.execCommand('copy');
-          document.body.removeChild(tempInput);
-        }
-        alert('📋 Copied review text:\n\n"' + text + '"\n\nWhen Google opens, long press or press Ctrl + V to Paste!');
-      } catch (err) {
-        alert('Text: ' + text);
-      }
-    };
+    function getInitials(name) {
+      if (!name) return 'GB';
+      const clean = name.trim().replace(/[^a-zA-Z0-9\s]/g, '');
+      const parts = clean.split(/\s+/).filter(Boolean);
+      if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
 
-    // Category-specific presets database
-    let activeCategoryPresets = {
-      "LPG Refill Delivery": [
-        { title: "⚡ Super Fast LPG Refill Delivery", text: "Extremely fast doorstep delivery of LPG cylinder! The delivery executive was polite, arrived on time, and verified the safety seal properly." },
-        { title: "📦 Reliable Emergency Refill Service", text: "Quick cylinder refill service! Booked online and received delivery within a couple hours. Excellent customer service!" },
-        { title: "🔥 Punctual & Safe Cylinder Delivery", text: "Very reliable LPG delivery service. Courteous delivery staff and hassle-free payment options. Highly satisfied!" },
-        { title: "✨ Professional Doorstep Cylinder Installation", text: "Prompt delivery and helpful executive who checked the regulator connection safely. Great service!" },
-        { title: "👍 Hassle-Free Gas Refill Experience", text: "Smooth booking process and quick home delivery. Highly recommend this gas agency!" }
-      ],
-      "New Gas Connection": [
-        { title: "📝 Quick & Easy New Connection Process", text: "Smooth and quick process for getting a new LPG gas connection! The office staff explained documentation very clearly and got it approved fast." },
-        { title: "🏠 Same-Day New Gas Connection Approval", text: "Got my new gas connection approved and cylinder delivered in just one day. Very efficient paperwork and courteous staff!" },
-        { title: "✨ Clear Guidance & Friendly Staff", text: "Hassle-free new gas connection experience. Transparent charges, polite staff, and excellent support!" }
-      ],
-      "Stove & Safety Check": [
-        { title: "🛡️ Thorough Safety & Pipe Inspection", text: "Professional technician conducted a complete safety check of the stove and gas hose. Genuine spare parts and great safety standards!" },
-        { title: "🔧 Quick Stove Repair & Leak Inspection", text: "Technician arrived promptly and resolved the burner flame issue in minutes. Very polite and knowledgeable service!" }
-      ],
-      "Customer Support": [
-        { title: "📞 Polite & Helpful Office Staff", text: "Prompt resolution of my address transfer request. Customer support staff at the agency was super helpful and polite!" },
-        { title: "🌟 Excellent Customer Service Experience", text: "Top-notch customer care! Solved my booking query instantly with complete politeness." }
-      ]
-    };
+    function showNotFoundScreen() {
+      document.title = 'Business Profile Not Found';
+      if (document.getElementById('brandBadge')) document.getElementById('brandBadge').textContent = '404';
+      if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = 'Profile Not Found';
+      if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = 'Invalid Review Link';
+      if (document.querySelector('footer p')) document.querySelector('footer p').textContent = 'Verified Google Business Profile Portal';
+
+      const mainTitle = document.getElementById('mainTitle');
+      const mainDesc = document.getElementById('mainDesc');
+      const starsContainer = document.querySelector('.stars-container');
+      const detailsForm = document.getElementById('detailsForm');
+
+      if (mainTitle) mainTitle.textContent = 'Business Profile Not Found ❌';
+      if (mainDesc) mainDesc.textContent = 'The requested review portal URL is invalid or no longer active. Please check your link or QR code and try again.';
+      if (starsContainer) starsContainer.style.display = 'none';
+      if (detailsForm) detailsForm.style.display = 'none';
+    }
+
+    function showPendingScreen(dataName) {
+      const name = dataName || 'Business Profile';
+      document.title = `${name} • Profile Setup in Progress`;
+      const mainTitle = document.getElementById('mainTitle');
+      const mainDesc = document.getElementById('mainDesc');
+      const starsContainer = document.querySelector('.stars-container');
+      const detailsForm = document.getElementById('detailsForm');
+
+      if (mainTitle) mainTitle.textContent = 'PROFILE SETUP IN PROGRESS ⏳';
+      if (mainDesc) mainDesc.textContent = 'Your Google Business Profile is currently being verified by our management team. Your review experience will become available after setup is completed.';
+      if (starsContainer) starsContainer.style.display = 'none';
+      if (detailsForm) detailsForm.style.display = 'none';
+    }
+
+    function showPausedScreen(dataName) {
+      const name = dataName || 'Business Profile';
+      document.title = `${name} • Profile Temporarily Unavailable`;
+      const mainTitle = document.getElementById('mainTitle');
+      const mainDesc = document.getElementById('mainDesc');
+      const starsContainer = document.querySelector('.stars-container');
+      const detailsForm = document.getElementById('detailsForm');
+
+      if (mainTitle) mainTitle.textContent = 'Profile Temporarily Unavailable ⏸️';
+      if (mainDesc) mainDesc.textContent = 'This business profile is currently suspended or temporarily paused by management.';
+      if (starsContainer) starsContainer.style.display = 'none';
+      if (detailsForm) detailsForm.style.display = 'none';
+    }
 
     // Fetch Business Settings
     async function loadBusiness() {
+      if (!currentTenantSlug) {
+        showNotFoundScreen();
+        return;
+      }
       try {
         const res = await fetch(API_BASE + '/api/business?tenant=' + currentTenantSlug);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.googleReviewUrl) {
-            googleReviewUrl = String(data.googleReviewUrl).trim().replace(/,+$/, '');
-          }
-          if (data.googlePlaceId) {
-            currentPlaceId = data.googlePlaceId;
-          }
-          if (data.name) {
-            document.title = `Rate Your Experience • ${data.name}`;
-            if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = data.name;
-            if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = data.name;
-            if (document.getElementById('brandBadge')) {
-              const words = data.name.trim().split(/\s+/);
-              const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].substring(0, 2).toUpperCase();
-              document.getElementById('brandBadge').textContent = initials;
-            }
-            if (document.querySelector('footer p')) {
-              document.querySelector('footer p').textContent = `${data.name} • Verified Google Business Profile`;
-            }
-          }
+        if (!res.ok || res.status === 404) {
+          showNotFoundScreen();
+          return;
+        }
 
-          // Build dynamic category presets
-          const category = data.category || 'Gas Agency';
-          if (category.toLowerCase().includes('salon') || category.toLowerCase().includes('beauty')) {
-            activeCategoryPresets = servicePresets;
-            selectedService = "Haircut & Hair Styling";
-          } else {
-            // Re-render service cards dynamically for Gas Agency / non-salon businesses
-            setupDynamicCategoryCards(category, data.name);
+        const data = await res.json();
+        if (data.googleReviewUrl) {
+          googleReviewUrl = String(data.googleReviewUrl).trim().replace(/,+$/, '');
+        }
+        if (data.googlePlaceId) {
+          currentPlaceId = data.googlePlaceId;
+        }
+        if (data.name) {
+          currentBusinessName = data.name;
+          document.title = `Rate Your Experience • ${data.name}`;
+          if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = data.name;
+          if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = data.category ? `${data.name} • ${data.category}` : data.name;
+          if (document.getElementById('brandBadge')) {
+            document.getElementById('brandBadge').textContent = data.initials || getInitials(data.name);
           }
-
-          if (data.status === 'paused') {
-            document.getElementById('mainTitle').textContent = 'Service Temporarily Paused';
-            document.getElementById('mainDesc').textContent = 'Review collection for this business is temporarily paused by management.';
-            if (document.querySelector('.stars-container')) document.querySelector('.stars-container').classList.add('hidden');
-          } else if (data.status === 'pending_setup' || (!data.googlePlaceId && !data.googleReviewUrl)) {
-            document.getElementById('mainTitle').textContent = 'Setup In Progress ⏳';
-            document.getElementById('mainDesc').textContent = 'This Google Business profile setup is currently being verified by management. Once activated, review submission will unlock!';
-            if (document.querySelector('.stars-container')) document.querySelector('.stars-container').classList.add('hidden');
+          if (document.querySelector('footer p')) {
+            document.querySelector('footer p').textContent = `${data.name} • Verified Google Business Profile`;
           }
         }
+
+        if (data.status === 'paused') {
+          showPausedScreen(data.name);
+          return;
+        }
+
+        if (data.status === 'pending_setup' || (!data.googlePlaceId && !data.googleReviewUrl)) {
+          showPendingScreen(data.name);
+          return;
+        }
+
+        // Active business: load dynamic category suggestions via Groq
+        await loadReviewSuggestions();
+
       } catch (e) {
         console.error('Error fetching business settings', e);
+        showNotFoundScreen();
       }
     }
 
-    function setupDynamicCategoryCards(category, name) {
+    async function loadReviewSuggestions() {
+      const serviceCardsGrid = document.getElementById('serviceCardsGrid');
+      const presetsContainer = document.getElementById('presetsContainer');
+      const presetCategoryLabel = document.getElementById('presetCategoryLabel');
+
+      if (!presetsContainer) return;
+
+      if (serviceCardsGrid) {
+        serviceCardsGrid.innerHTML = `<div style="text-align:center; padding:12px; color:var(--text-muted); font-size:13px; grid-column: 1 / -1;">✨ Loading category review suggestions...</div>`;
+      }
+      presetsContainer.innerHTML = '';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/reviews/suggestions?tenant=${currentTenantSlug}`);
+        const data = await res.json();
+
+        if (!data.ok || !data.categories || !Array.isArray(data.categories) || data.categories.length === 0) {
+          const errMsg = data.error || 'AI review suggestions are temporarily unavailable. You can still write your feedback manually below.';
+          if (serviceCardsGrid) serviceCardsGrid.innerHTML = '';
+          presetsContainer.innerHTML = `
+            <div style="padding: 12px 16px; background: rgba(212,175,55,0.08); border: 1px dashed var(--accent-gold); border-radius: 10px; font-size: 13px; color: var(--text-main); line-height: 1.5;">
+              ℹ️ ${errMsg}
+            </div>
+          `;
+          if (presetCategoryLabel) presetCategoryLabel.textContent = 'Custom Feedback';
+          return;
+        }
+
+        dynamicCategories = data.categories;
+        selectedCategoryIndex = 0;
+        renderDynamicCategoryCards();
+        renderDynamicPresets();
+
+      } catch (err) {
+        console.error('Error fetching review suggestions:', err);
+        if (serviceCardsGrid) serviceCardsGrid.innerHTML = '';
+        presetsContainer.innerHTML = `
+          <div style="padding: 12px 16px; background: rgba(212,175,55,0.08); border: 1px dashed var(--accent-gold); border-radius: 10px; font-size: 13px; color: var(--text-main); line-height: 1.5;">
+            ℹ️ AI review suggestions are temporarily unavailable. You can still write your feedback manually below.
+          </div>
+        `;
+        if (presetCategoryLabel) presetCategoryLabel.textContent = 'Custom Feedback';
+      }
+    }
+
+    function renderDynamicCategoryCards() {
       const grid = document.getElementById('serviceCardsGrid');
       if (!grid) return;
 
-      const catName = category || 'Gas Agency';
-      if (catName.toLowerCase().includes('gas')) {
-        grid.innerHTML = `
-          <div class="service-card-item active" data-service="LPG Refill Delivery">
-            <span class="service-card-icon">🔥</span>
-            <span class="service-card-label">LPG Refill Delivery</span>
-          </div>
-          <div class="service-card-item" data-service="New Gas Connection">
-            <span class="service-card-icon">📝</span>
-            <span class="service-card-label">New Gas Connection</span>
-          </div>
-          <div class="service-card-item" data-service="Stove & Safety Check">
-            <span class="service-card-icon">🛡️</span>
-            <span class="service-card-label">Stove & Safety Check</span>
-          </div>
-          <div class="service-card-item" data-service="Customer Support">
-            <span class="service-card-icon">📞</span>
-            <span class="service-card-label">Customer Support</span>
-          </div>
-        `;
-        selectedService = "LPG Refill Delivery";
-      } else {
-        grid.innerHTML = `
-          <div class="service-card-item active" data-service="Customer Support">
-            <span class="service-card-icon">🌟</span>
-            <span class="service-card-label">Customer Service</span>
-          </div>
-          <div class="service-card-item" data-service="Product & Quality">
-            <span class="service-card-icon">👍</span>
-            <span class="service-card-label">Product & Quality</span>
-          </div>
-        `;
-        selectedService = "Customer Support";
-        activeCategoryPresets = {
-          "Customer Support": [
-            { title: "🌟 Outstanding Customer Care", text: `Great experience with ${name || 'this business'}! Staff was prompt, polite, and helpful.` },
-            { title: "👍 High Quality & Professional Service", text: `Highly recommended! Excellent service quality and great team at ${name || 'this business'}.` }
-          ]
-        };
+      grid.innerHTML = dynamicCategories.map((cat, idx) => `
+        <div class="service-card-item ${idx === selectedCategoryIndex ? 'active' : ''}" data-index="${idx}">
+          <span class="service-card-icon">${cat.icon || '⭐'}</span>
+          <span class="service-card-label">${cat.name}</span>
+        </div>
+      `).join('');
+
+      grid.querySelectorAll('.service-card-item').forEach(card => {
+        card.addEventListener('click', () => {
+          grid.querySelectorAll('.service-card-item').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedCategoryIndex = parseInt(card.dataset.index, 10);
+          renderDynamicPresets();
+        });
+      });
+    }
+
+    function renderDynamicPresets() {
+      const presetsContainer = document.getElementById('presetsContainer');
+      const presetCategoryLabel = document.getElementById('presetCategoryLabel');
+
+      if (!presetsContainer) return;
+
+      const currentCat = dynamicCategories[selectedCategoryIndex];
+      if (!currentCat) return;
+
+      if (presetCategoryLabel) {
+        presetCategoryLabel.textContent = currentCat.name;
       }
 
-      // Re-attach card click listeners
-      document.querySelectorAll('.service-card-item').forEach(card => {
+      const presets = currentCat.presets || [];
+      presetsContainer.innerHTML = presets.map((p, idx) => `
+        <div class="preset-card ${idx === 0 ? 'selected' : ''}" data-idx="${idx}">
+          <div class="preset-card-title">
+            <span>${p.title}</span>
+            <span class="preset-select-badge">${idx === 0 ? '✓ Selected' : 'Tap to Select'}</span>
+          </div>
+          <div class="preset-card-text">"${p.text}"</div>
+        </div>
+      `).join('');
+
+      if (presets.length > 0 && !feedbackText.value.trim()) {
+        feedbackText.value = presets[0].text;
+        if (charCount) charCount.textContent = `${feedbackText.value.length} / 500`;
+      }
+
+      presetsContainer.querySelectorAll('.preset-card').forEach((card, idx) => {
         card.addEventListener('click', () => {
-          document.querySelectorAll('.service-card-item').forEach(c => c.classList.remove('active'));
-          card.classList.add('active');
-          selectedService = card.dataset.service;
-          renderPresetsForService(selectedService);
+          presetsContainer.querySelectorAll('.preset-card').forEach(c => {
+            c.classList.remove('selected');
+            const badge = c.querySelector('.preset-select-badge');
+            if (badge) badge.textContent = 'Tap to Select';
+          });
+          card.classList.add('selected');
+          const badge = card.querySelector('.preset-select-badge');
+          if (badge) badge.textContent = '✓ Selected';
+
+          const preset = presets[idx];
+          if (preset) {
+            feedbackText.value = preset.text;
+            if (charCount) charCount.textContent = `${feedbackText.value.length} / 500`;
+          }
         });
       });
     }
 
     loadBusiness();
-
-    // Render Preset Review Cards for Currently Selected Service
-    function renderPresetsForService(serviceName) {
-      document.getElementById('presetCategoryLabel').textContent = serviceName;
-      const list = activeCategoryPresets[serviceName] || servicePresets[serviceName] || Object.values(activeCategoryPresets)[0] || servicePresets["Haircut & Hair Styling"];
-
-      selectedPresetIndex = 0; // Default select 1st option
-
-      presetsContainer.innerHTML = list.map((item, idx) => `
-        <div class="preset-card ${idx === 0 ? 'selected' : ''}" data-idx="${idx}">
-          <div class="preset-card-title">
-            <span>${item.title}</span>
-            <span class="preset-select-badge">${idx === 0 ? '✓ Selected' : 'Tap to Select'}</span>
-          </div>
-          <div class="preset-card-text">${item.text}</div>
-        </div>
-      `).join('');
-
-      // Auto set text of 1st preset
-      feedbackText.value = list[0].text;
-      charCount.textContent = `${feedbackText.value.length} / 500`;
-
-      document.querySelectorAll('.preset-card').forEach(card => {
-        card.addEventListener('click', () => {
-          const idx = Number(card.dataset.idx);
-          selectedPresetIndex = idx;
-
-          document.querySelectorAll('.preset-card').forEach(c => {
-            c.classList.remove('selected');
-            c.querySelector('.preset-select-badge').textContent = 'Tap to Select';
-          });
-          card.classList.add('selected');
-          card.querySelector('.preset-select-badge').textContent = '✓ Selected';
-
-          const preset = list[idx];
-          feedbackText.value = preset.text;
-          charCount.textContent = `${feedbackText.value.length} / 500`;
-        });
-      });
-    }
-
-    // Visual Service Card Click Handler
-    serviceCards.forEach(card => {
-      card.addEventListener('click', () => {
-        serviceCards.forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        selectedService = card.dataset.service;
-        renderPresetsForService(selectedService);
-      });
-    });
 
     // Update Stars Display
     function renderStars(r) {
@@ -1030,6 +929,14 @@
         updateBadge(selectedRating);
 
         detailsForm.classList.remove('hidden');
+
+        if (selectedRating >= 4) {
+          submitBtn.textContent = '⭐ Post 5-Star Review on Google Maps';
+        } else {
+          submitBtn.textContent = 'Submit Private Feedback to Management ❤️';
+        }
+      });
+    });'hidden');
 
         // Initial render for active service
         renderPresetsForService(selectedService);
@@ -1154,7 +1061,7 @@
             <div style="font-size: 52px; margin-bottom: 12px;">❤️ 🙏</div>
             <h2 style="margin-bottom: 10px; color: var(--primary);">Thank You For Your Feedback</h2>
             <p class="muted" style="margin-bottom: 24px; font-size: 15px; line-height: 1.5;">
-              Your response has been privately submitted directly to <b>Divya Rathod & Salon Management</b> to help us improve your future visits.
+              Your response has been privately submitted directly to <b>${currentBusinessName} Management</b> to help us improve your future experience.
             </p>
           </div>
         `;

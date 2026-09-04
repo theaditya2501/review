@@ -88,7 +88,7 @@
         <form id="regForm" onsubmit="return false;">
           <div class="form-group">
             <label for="bizName">Business / Profile Name *</label>
-            <input id="bizName" type="text" placeholder="e.g. Divya Rathod Beauty Salon" required>
+            <input id="bizName" type="text" placeholder="e.g. Sunshine Spa & Beauty or Star Gas Agency" required>
           </div>
 
           <div class="form-group">
@@ -103,7 +103,7 @@
 
           <div class="form-group">
             <label for="ownerPass">Choose Account Password *</label>
-            <input id="ownerPass" type="password" value="5922" placeholder="Password" required>
+            <input id="ownerPass" type="password" placeholder="Create account password" required>
           </div>
 
           <button type="submit" id="payBtn" class="btn btn-gold btn-block" style="margin-top: 10px; font-size: 17px;">
@@ -158,36 +158,44 @@
       try {
         // Fetch Razorpay config
         const rzpConfig = await fetch(API_BASE + '/api/razorpay/config').then(r => r.json());
-
-        // Create Autopay Subscription
-        let subscriptionId = '';
-        try {
-          const subRes = await fetch(API_BASE + '/api/razorpay/create-subscription', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ businessName, phone })
-          }).then(r => r.json());
-
-          if (subRes && subRes.subscription && subRes.subscription.id) {
-            subscriptionId = subRes.subscription.id;
-          }
-        } catch (err) {
-          console.warn('Subscription API notice:', err);
+        if (!rzpConfig.key) {
+          alert('Payment service is temporarily unavailable. Please contact system administrator.');
+          return false;
         }
 
+        // Create Autopay Subscription
+        const subRes = await fetch(API_BASE + '/api/razorpay/create-subscription', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ businessName, phone })
+        }).then(r => r.json());
+
+        if (!subRes.ok || !subRes.subscription || !subRes.subscription.id) {
+          alert(subRes.error || 'Payment gateway is currently unavailable. Please try again later.');
+          return false;
+        }
+
+        const subscriptionId = subRes.subscription.id;
+
         const options = {
-          key: rzpConfig.key || 'rzp_live_TWfdHUXcUNhDvk',
+          key: rzpConfig.key,
           name: rzpConfig.name || 'GMB Review Booster Platform',
           description: '₹199/Month Autopay Subscription',
+          subscription_id: subscriptionId,
           handler: async function (response) {
+            if (!response.razorpay_payment_id || !response.razorpay_signature) {
+              alert('Invalid payment response from Razorpay.');
+              return;
+            }
+
             // Verify subscription & create account in pending_setup state
             const verifyRes = await fetch(API_BASE + '/api/razorpay/verify-subscription', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                razorpay_payment_id: response.razorpay_payment_id || `pay_live_${Date.now()}`,
+                razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_subscription_id: response.razorpay_subscription_id || subscriptionId,
-                razorpay_signature: response.razorpay_signature || 'sig_live',
+                razorpay_signature: response.razorpay_signature,
                 businessName,
                 mapsUrl,
                 phone,
@@ -200,7 +208,7 @@
               $('successCard').classList.remove('hidden');
               $('successCard').scrollIntoView({ behavior: 'smooth' });
             } else {
-              alert('Payment verification failed.');
+              alert(verifyRes.error || 'Payment verification failed.');
             }
           },
           prefill: {
@@ -210,13 +218,6 @@
             color: '#4a1329'
           }
         };
-
-        if (subscriptionId && !subscriptionId.startsWith('sub_mock_')) {
-          options.subscription_id = subscriptionId;
-        } else {
-          options.amount = 19900; // ₹199 in paise
-          options.currency = 'INR';
-        }
 
         if (typeof Razorpay !== 'undefined') {
           const rzp = new Razorpay(options);

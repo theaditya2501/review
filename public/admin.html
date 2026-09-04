@@ -111,7 +111,7 @@
         <form id="loginForm" onsubmit="return false;">
           <div class="form-group">
             <label for="tenantInput">Business Account Slug</label>
-            <input id="tenantInput" type="text" value="divya-rathod-beauty-salon" placeholder="e.g. divya-rathod-beauty-salon" required>
+            <input id="tenantInput" type="text" placeholder="e.g. thushr-gas-agency" required>
           </div>
           <div class="form-group">
             <label for="adminPass">Account Password</label>
@@ -134,10 +134,10 @@
                 <div class="subtitle" style="margin-bottom: 0;">GMB Portal</div>
                 <span class="badge badge-plan">₹199 / Month Autopay Active</span>
               </div>
-              <h1 id="dashSalonName" style="font-size: 26px; margin: 4px 0 0;">Divya Rathod Beauty Salon</h1>
+              <h1 id="dashSalonName" style="font-size: 26px; margin: 4px 0 0;">Business Dashboard</h1>
             </div>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-              <a id="viewLiveBtn" href="/r/divya-rathod-beauty-salon" target="_blank" class="btn btn-secondary btn-sm">
+              <a id="viewLiveBtn" href="#" target="_blank" class="btn btn-secondary btn-sm">
                 ↗️ Customer Review Page
               </a>
               <button id="logoutBtn" class="btn btn-outline btn-sm">
@@ -311,13 +311,13 @@
     const API_BASE = '';
 
     const urlParams = new URLSearchParams(window.location.search);
-    let activeTenantSlug = urlParams.get('tenant') || sessionStorage.activeTenantSlug || 'divya-rathod-beauty-salon';
+    let activeTenantSlug = urlParams.get('tenant') || sessionStorage.activeTenantSlug || '';
 
     let token = sessionStorage.token || '';
     let currentSettings = {};
 
     const $ = id => document.getElementById(id);
-    $('tenantInput').value = activeTenantSlug;
+    if ($('tenantInput')) $('tenantInput').value = activeTenantSlug;
 
     async function api(endpoint, options = {}) {
       options.headers = {
@@ -419,30 +419,36 @@
         const s = await api('/api/admin/stats');
         $('statTotal').textContent = s.total;
         $('totalBadge').textContent = s.total;
-        $('statAvg').textContent = s.average || '5.0';
+        $('statAvg').textContent = s.total > 0 ? s.average : 'N/A';
         $('statPositive').textContent = s.positiveCount;
         $('statPrivate').textContent = s.privateCount;
-        $('statHealth').textContent = `${s.healthScore}%`;
+        $('statHealth').textContent = s.healthScore ? `${s.healthScore}%` : 'Not Synced';
 
-        // Update status banner
+        // Update status banner based on 3 GMB states
         const banner = $('statusBanner');
-        if (s.status === 'active') {
-          banner.className = 'status-banner status-active';
-          banner.innerHTML = `
-            <b>✨ Account Active & Google Place ID Linked</b><br>
-            <span style="font-size: 13px;">Your ₹199/month subscription is active! Your 5-star Google review direct modal and HD Standee QR Code are live.</span>
-          `;
-        } else if (s.status === 'paused') {
+        if (s.status === 'paused') {
           banner.className = 'status-banner status-paused';
           banner.innerHTML = `
-            <b>⏸️ Subscription Service Paused</b><br>
+            <b>⏸️ Profile Temporarily Paused</b><br>
             <span style="font-size: 13px;">Service has been temporarily paused by management. Please contact support to reactivate.</span>
           `;
-        } else {
+        } else if (s.status === 'pending_setup' || s.googleSyncStatus === 'not_configured') {
           banner.className = 'status-banner status-pending';
           banner.innerHTML = `
             <b>⏳ Account Status: Pending Setup</b><br>
             <span style="font-size: 13px;">Our management team is analyzing your profile and configuring your Google Place ID. Once activated, your HD Standee QR Code and 5-Star Direct Redirect will be unlocked!</span>
+          `;
+        } else if (s.googleSyncStatus === 'pending_sync' || !s.googleData) {
+          banner.className = 'status-banner status-active';
+          banner.innerHTML = `
+            <b>📌 Google Profile Connected • Synchronization Pending</b><br>
+            <span style="font-size: 13px;">Google Place ID is linked! Direct Google Business Profile API sync is not connected. Customer 5-Star redirects are operational.</span>
+          `;
+        } else {
+          banner.className = 'status-banner status-active';
+          banner.innerHTML = `
+            <b>✨ Account Active & Google Business Profile Synced</b><br>
+            <span style="font-size: 13px;">Your Google Business Profile data is fully synchronized and 5-star customer review redirects are operational.</span>
           `;
         }
 
@@ -501,11 +507,35 @@
     async function loadQrAndSettings() {
       try {
         const qrRes = await fetch(`${API_BASE}/api/qr?tenant=${activeTenantSlug}`).then(r => r.json());
-        $('qrImg').src = qrRes.data;
+        const qrImg = $('qrImg');
+
+        if (qrRes.active && qrRes.data) {
+          qrImg.src = qrRes.data;
+          qrImg.style.display = 'block';
+          if ($('qrPendingBox')) $('qrPendingBox').style.display = 'none';
+        } else {
+          qrImg.style.display = 'none';
+          if (!$('qrPendingBox')) {
+            const pendingBox = document.createElement('div');
+            pendingBox.id = 'qrPendingBox';
+            pendingBox.style.cssText = 'padding: 24px; background: rgba(212,175,55,0.08); border: 2px dashed var(--accent-gold); border-radius: 16px; text-align: center; color: var(--text-main); margin: 15px 0;';
+            pendingBox.innerHTML = `
+              <div style="font-size: 32px; margin-bottom: 6px;">⏳</div>
+              <strong style="font-size: 15px;">QR Code Pending Setup</strong>
+              <p style="font-size: 12px; opacity: 0.85; margin: 4px 0 0 0; color: var(--text-muted);">
+                Your Google Business Profile & Place ID are being verified. Your QR poster will be generated upon activation.
+              </p>
+            `;
+            qrImg.parentNode.appendChild(pendingBox);
+          } else {
+            $('qrPendingBox').style.display = 'block';
+          }
+        }
 
         const s = await api('/api/admin/settings');
         currentSettings = s;
         $('dashSalonName').textContent = s.name;
+        if ($('viewLiveBtn')) $('viewLiveBtn').href = `/r/${s.slug || activeTenantSlug}`;
         $('posterSalonName').textContent = s.name;
         $('posterTagline').textContent = s.tagline || 'Google Verified Business';
 
