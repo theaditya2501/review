@@ -104,6 +104,10 @@
         <h1 id="loginTitle">Business Owner Portal</h1>
         <p class="muted" style="margin-bottom: 24px;">Log in to access your HD Standee QR Code, GMB analytics, and customer reviews.</p>
 
+        <div id="loginErrorAlert" class="hidden" style="background: #fee2e2; border: 1.5px solid #fca5a5; color: #991b1b; padding: 12px 16px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 14px; font-weight: 600; text-align: left;">
+          ❌ Incorrect Password for this business account. Please try again.
+        </div>
+
         <form id="loginForm" onsubmit="return false;">
           <div class="form-group">
             <label for="tenantInput">Business Account Slug</label>
@@ -346,6 +350,7 @@
       const password = $('adminPass').value;
       $('loginBtn').disabled = true;
       $('loginBtn').textContent = 'Authenticating...';
+      if ($('loginErrorAlert')) $('loginErrorAlert').classList.add('hidden');
 
       try {
         const res = await fetch(API_BASE + '/api/admin/login', {
@@ -356,7 +361,12 @@
         const data = await res.json();
 
         if (!res.ok) {
-          alert(data.error || 'Invalid Credentials');
+          const errMsg = data.error || 'Incorrect password for this business account.';
+          if ($('loginErrorAlert')) {
+            $('loginErrorAlert').textContent = '❌ ' + errMsg;
+            $('loginErrorAlert').classList.remove('hidden');
+          }
+          alert('❌ ' + errMsg);
           return;
         }
 
@@ -366,7 +376,11 @@
         sessionStorage.activeTenantSlug = activeTenantSlug;
         showDashboard();
       } catch (err) {
-        alert('Login failed.');
+        if ($('loginErrorAlert')) {
+          $('loginErrorAlert').textContent = '❌ Login failed. Please check network connection and password.';
+          $('loginErrorAlert').classList.remove('hidden');
+        }
+        alert('❌ Login failed. Please check your network and password.');
       } finally {
         $('loginBtn').disabled = false;
         $('loginBtn').textContent = 'Login to Dashboard 🔑';
