@@ -552,11 +552,11 @@
 
         <!-- Header Cover Banner -->
         <div class="cover-banner">
-          <div class="cover-title">Divya Rathod</div>
+          <div class="cover-title" id="coverTitle">Google Verified Business</div>
         </div>
 
-        <div class="brand-badge">DR</div>
-        <div class="subtitle" id="salonSub">Divya Rathod Beauty Salon</div>
+        <div class="brand-badge" id="brandBadge">⭐</div>
+        <div class="subtitle" id="salonSub">Google Business Profile</div>
         <h1 id="mainTitle">How Was Your Experience?</h1>
         <p class="muted" id="mainDesc">Tap a star rating below to begin your review.</p>
 
@@ -821,7 +821,13 @@
           }
           if (data.name) {
             document.title = `Rate Your Experience • ${data.name}`;
-            document.getElementById('salonSub').textContent = data.name;
+            if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = data.name;
+            if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = data.name;
+            if (document.getElementById('brandBadge')) {
+              const words = data.name.trim().split(/\s+/);
+              const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].substring(0, 2).toUpperCase();
+              document.getElementById('brandBadge').textContent = initials;
+            }
           }
           if (data.status === 'paused') {
             document.getElementById('mainTitle').textContent = 'Service Temporarily Paused';
