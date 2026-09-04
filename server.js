@@ -798,6 +798,6 @@ app.get(['/admin', '/admin.html'], (req, res) => {
 
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✨ Multi-Tenant GMB Review Booster running at ${BASE_URL}`);
-  console.log(`🔑 Master Control Portal available at ${BASE_URL}/master`);
+  console.log(`✨ Multi-Tenant GMB Review Booster running on port ${PORT}`);
+  console.log(`🔑 Master Control Portal available at /master`);
 });
