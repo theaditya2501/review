@@ -87,8 +87,13 @@
         
         <form id="regForm" onsubmit="return false;">
           <div class="form-group">
-            <label for="bizName">Business Name *</label>
+            <label for="bizName">Business / Profile Name *</label>
             <input id="bizName" type="text" placeholder="e.g. Divya Rathod Beauty Salon" required>
+          </div>
+
+          <div class="form-group">
+            <label for="mapsUrl">Google Maps Link or Place ID (Optional)</label>
+            <input id="mapsUrl" type="text" placeholder="e.g. https://maps.app.goo.gl/... or Place ID">
           </div>
 
           <div class="form-group">
@@ -148,6 +153,7 @@
       e.preventDefault();
 
       const businessName = $('bizName').value.trim();
+      const mapsUrl = $('mapsUrl') ? $('mapsUrl').value.trim() : '';
       const phone = $('ownerPhone').value.trim();
       const password = $('ownerPass').value.trim();
 
@@ -193,6 +199,7 @@
                 razorpay_subscription_id: response.razorpay_subscription_id || subscriptionId,
                 razorpay_signature: response.razorpay_signature || 'sig_live',
                 businessName,
+                mapsUrl,
                 phone,
                 password
               })

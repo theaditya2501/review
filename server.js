@@ -462,7 +462,8 @@ app.post('/api/razorpay/verify-subscription', async (req, res) => {
     razorpay_signature,
     businessName,
     phone,
-    password
+    password,
+    mapsUrl
   } = req.body;
 
   const baseSlug = createSlug(businessName);
@@ -481,8 +482,8 @@ app.post('/api/razorpay/verify-subscription', async (req, res) => {
     tagline: 'Google Verified Business Profile',
     address: 'Main City Location',
     phone: phone || '',
-    googlePlaceId: '', // Blank until Master Control updates!
-    googleReviewUrl: '',
+    googlePlaceId: mapsUrl || '',
+    googleReviewUrl: mapsUrl || '',
     adminPassword: password || '123456',
     plan: '₹199/month Autopay Active',
     subscriptionId: razorpay_subscription_id || 'sub_live_199',
@@ -657,33 +658,39 @@ app.post('/api/master/login', (req, res) => {
 
 // List All Businesses for Master Control
 app.get('/api/master/businesses', masterAuth, async (req, res) => {
-  const list = await fetchAllBusinesses();
-  const allReviews = await fetchTenantReviews(null);
+  try {
+    const list = await fetchAllBusinesses();
+    const allReviews = await fetchTenantReviews(null);
+    const baseUrl = getReqBaseUrl(req);
 
-  const enhancedList = list.map(b => {
-    const bReviews = allReviews.filter(r => r.tenantSlug === b.slug);
-    const avgRating = bReviews.length ? (bReviews.reduce((acc, r) => acc + r.rating, 0) / bReviews.length).toFixed(1) : '5.0';
-    return {
-      ...b,
-      totalReviews: bReviews.length,
-      avgRating,
-      reviewUrl: `${BASE_URL}/r/${b.slug}`,
-      adminUrl: `${BASE_URL}/admin?tenant=${b.slug}`
-    };
-  });
+    const enhancedList = list.map(b => {
+      const bReviews = Array.isArray(allReviews) ? allReviews.filter(r => r && r.tenantSlug === b.slug) : [];
+      const avgRating = bReviews.length ? (bReviews.reduce((acc, r) => acc + (r.rating || 5), 0) / bReviews.length).toFixed(1) : '5.0';
+      return {
+        ...b,
+        totalReviews: bReviews.length,
+        avgRating,
+        reviewUrl: `${baseUrl}/r/${b.slug}`,
+        adminUrl: `${baseUrl}/admin?tenant=${b.slug}`
+      };
+    });
 
-  const activeCount = enhancedList.filter(b => b.status === 'active').length;
-  const pendingCount = enhancedList.filter(b => b.status === 'pending_setup').length;
-  const pausedCount = enhancedList.filter(b => b.status === 'paused').length;
+    const activeCount = enhancedList.filter(b => b.status === 'active').length;
+    const pendingCount = enhancedList.filter(b => b.status === 'pending_setup').length;
+    const pausedCount = enhancedList.filter(b => b.status === 'paused').length;
 
-  res.json({
-    totalBusinesses: enhancedList.length,
-    monthlyRevenue: enhancedList.length * 199,
-    activeCount,
-    pendingCount,
-    pausedCount,
-    businesses: enhancedList
-  });
+    res.json({
+      totalBusinesses: enhancedList.length,
+      monthlyRevenue: enhancedList.length * 199,
+      activeCount,
+      pendingCount,
+      pausedCount,
+      businesses: enhancedList
+    });
+  } catch (err) {
+    console.error('Error fetching master businesses:', err.message);
+    res.status(500).json({ error: 'Failed to fetch business list' });
+  }
 });
 
 // Update Place ID & Activate / Pause Business (Master Control)
