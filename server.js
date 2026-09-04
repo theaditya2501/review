@@ -43,8 +43,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
 const DATA_DIR = path.join(__dirname, 'data');
+
+function getReqBaseUrl(req) {
+  const host = req.headers.host || req.headers['x-forwarded-host'] || `localhost:${PORT}`;
+  const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
+  return `${protocol}://${host}`;
+}
 const BUSINESSES_FILE = path.join(DATA_DIR, 'businesses.json');
 const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
 
@@ -387,7 +392,8 @@ app.get('/api/qr', async (req, res) => {
   try {
     const tenantSlug = req.query.tenant || req.query.slug || 'divya-rathod-beauty-salon';
     const biz = await fetchBusinessBySlug(tenantSlug);
-    const reviewUrl = `${BASE_URL}/r/${biz.slug}`;
+    const baseUrl = getReqBaseUrl(req);
+    const reviewUrl = `${baseUrl}/r/${biz.slug}`;
     const dataUrl = await QRCode.toDataURL(reviewUrl, {
       width: 1200, // HD 4K Quality
       margin: 2,
@@ -492,12 +498,13 @@ app.post('/api/razorpay/verify-subscription', async (req, res) => {
 
   await saveFirestoreBusiness(newBusiness);
 
+  const baseUrl = getReqBaseUrl(req);
   res.json({
     ok: true,
     message: 'Subscription Autopay active! Profile in Pending Setup.',
     business: newBusiness,
-    adminUrl: `${BASE_URL}/admin?tenant=${slug}`,
-    reviewUrl: `${BASE_URL}/r/${slug}`
+    adminUrl: `${baseUrl}/admin?tenant=${slug}`,
+    reviewUrl: `${baseUrl}/r/${slug}`
   });
 });
 
