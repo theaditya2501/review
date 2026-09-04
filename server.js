@@ -698,10 +698,10 @@ app.get('/api/master/businesses', masterAuth, async (req, res) => {
   }
 });
 
-// Update Place ID & Activate / Pause Business (Master Control)
+// Update Place ID, Password & Activate / Pause Business (Master Control)
 app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
   const { slug } = req.params;
-  const { googlePlaceId, status, tagline, address } = req.body;
+  const { googlePlaceId, status, tagline, address, adminPassword } = req.body;
 
   const current = await fetchBusinessBySlug(slug);
 
@@ -709,6 +709,7 @@ app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
     ...current,
     googlePlaceId: googlePlaceId !== undefined ? String(googlePlaceId).trim() : (current.googlePlaceId || ''),
     googleReviewUrl: formatGoogleReviewUrl(googlePlaceId !== undefined ? googlePlaceId : current.googlePlaceId, ''),
+    adminPassword: adminPassword !== undefined ? String(adminPassword).trim() : (current.adminPassword || '5922'),
     status: status || (googlePlaceId ? 'active' : current.status),
     tagline: tagline || current.tagline,
     address: address || current.address

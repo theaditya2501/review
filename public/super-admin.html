@@ -324,9 +324,15 @@
             </div>
 
             <div style="background: var(--surface-alt); padding: 16px; border-radius: 12px; margin: 12px 0; border: 1px dashed var(--border);">
-              <div class="form-group" style="margin-bottom: 10px;">
-                <label style="font-size: 13px;">Google Place ID (Direct Review Modal)</label>
-                <input id="placeId-${item.slug}" type="text" value="${item.googlePlaceId || ''}" placeholder="e.g. ChIJmcF2R3KDXjkR8uxzfKEdGyA or Maps Link">
+              <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;">
+                <div class="form-group" style="flex: 2; margin-bottom: 0;">
+                  <label style="font-size: 13px;">Google Place ID or Maps Link</label>
+                  <input id="placeId-${item.slug}" type="text" value="${item.googlePlaceId || ''}" placeholder="e.g. ChIJmcF2R3KDXjkR8uxzfKEdGyA or Maps Link">
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 150px;">
+                  <label style="font-size: 13px;">Owner Account Password</label>
+                  <input id="adminPass-${item.slug}" type="text" value="${adminPass}" placeholder="e.g. 5922">
+                </div>
               </div>
 
               ${item.aiAnalysis ? `
@@ -337,11 +343,7 @@
 
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button onclick="savePlaceIdAndActivate('${item.slug}')" class="btn btn-gold btn-sm">
-                  💾 Save Place ID & Activate
-                </button>
-
-                <button onclick="copyWhatsappMsg('${escapedName}', '${adminUrl}', '${reviewUrl}', '${adminPass}', '${item.phone}')" class="btn btn-gold btn-sm" style="background: #16a34a; color: #fff;">
-                  💬 Copy WhatsApp Welcome Msg
+                  💾 Save Details & Update Password
                 </button>
 
                 <button onclick="runGroqAnalysis('${item.slug}')" class="btn btn-secondary btn-sm">
@@ -379,13 +381,14 @@
 
     async function savePlaceIdAndActivate(slug) {
       const placeId = $(`placeId-${slug}`).value.trim();
+      const adminPassword = $(`adminPass-${slug}`) ? $(`adminPass-${slug}`).value.trim() : '';
       try {
         await api('/api/master/businesses/' + slug, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ googlePlaceId: placeId, status: 'active' })
+          body: JSON.stringify({ googlePlaceId: placeId, adminPassword, status: 'active' })
         });
-        alert('Place ID saved and business activated!');
+        alert('✅ Business details & owner password updated successfully!');
         loadBusinesses();
         loadPaymentHistory();
       } catch (e) {
@@ -429,33 +432,6 @@
         loadBusinesses();
         loadPaymentHistory();
       } catch (e) {}
-    }
-
-    function copyWhatsappMsg(name, adminUrl, reviewUrl, pass, phone) {
-      const msg = `🎉 *Welcome to GMB Review Booster Platform!*
-
-Your 24/7 Google 5-Star Review portal is ready:
-
-📍 *Business*: ${name}
-🔑 *Owner Admin Dashboard*: ${adminUrl}
-🔐 *Admin Password*: ${pass}
-⭐ *Direct Customer Review Link*: ${reviewUrl}
-
-Need support or custom QR posters? Contact our team anytime! 🚀`;
-
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(msg).then(() => {
-          alert(`✅ Copied Onboarding Welcome Message for "${name}"!\n\nYou can now paste it directly into WhatsApp or SMS.`);
-        });
-      } else {
-        const ta = document.createElement('textarea');
-        ta.value = msg;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        alert(`✅ Copied Onboarding Welcome Message for "${name}"!\n\nYou can now paste it directly into WhatsApp or SMS.`);
-      }
     }
 
     $('refreshBtn').onclick = () => {
