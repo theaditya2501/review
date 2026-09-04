@@ -807,6 +807,30 @@
       }
     };
 
+    // Category-specific presets database
+    let activeCategoryPresets = {
+      "LPG Refill Delivery": [
+        { title: "⚡ Super Fast LPG Refill Delivery", text: "Extremely fast doorstep delivery of LPG cylinder! The delivery executive was polite, arrived on time, and verified the safety seal properly." },
+        { title: "📦 Reliable Emergency Refill Service", text: "Quick cylinder refill service! Booked online and received delivery within a couple hours. Excellent customer service!" },
+        { title: "🔥 Punctual & Safe Cylinder Delivery", text: "Very reliable LPG delivery service. Courteous delivery staff and hassle-free payment options. Highly satisfied!" },
+        { title: "✨ Professional Doorstep Cylinder Installation", text: "Prompt delivery and helpful executive who checked the regulator connection safely. Great service!" },
+        { title: "👍 Hassle-Free Gas Refill Experience", text: "Smooth booking process and quick home delivery. Highly recommend this gas agency!" }
+      ],
+      "New Gas Connection": [
+        { title: "📝 Quick & Easy New Connection Process", text: "Smooth and quick process for getting a new LPG gas connection! The office staff explained documentation very clearly and got it approved fast." },
+        { title: "🏠 Same-Day New Gas Connection Approval", text: "Got my new gas connection approved and cylinder delivered in just one day. Very efficient paperwork and courteous staff!" },
+        { title: "✨ Clear Guidance & Friendly Staff", text: "Hassle-free new gas connection experience. Transparent charges, polite staff, and excellent support!" }
+      ],
+      "Stove & Safety Check": [
+        { title: "🛡️ Thorough Safety & Pipe Inspection", text: "Professional technician conducted a complete safety check of the stove and gas hose. Genuine spare parts and great safety standards!" },
+        { title: "🔧 Quick Stove Repair & Leak Inspection", text: "Technician arrived promptly and resolved the burner flame issue in minutes. Very polite and knowledgeable service!" }
+      ],
+      "Customer Support": [
+        { title: "📞 Polite & Helpful Office Staff", text: "Prompt resolution of my address transfer request. Customer support staff at the agency was super helpful and polite!" },
+        { title: "🌟 Excellent Customer Service Experience", text: "Top-notch customer care! Solved my booking query instantly with complete politeness." }
+      ]
+    };
+
     // Fetch Business Settings
     async function loadBusiness() {
       try {
@@ -828,7 +852,21 @@
               const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].substring(0, 2).toUpperCase();
               document.getElementById('brandBadge').textContent = initials;
             }
+            if (document.querySelector('footer p')) {
+              document.querySelector('footer p').textContent = `${data.name} • Verified Google Business Profile`;
+            }
           }
+
+          // Build dynamic category presets
+          const category = data.category || 'Gas Agency';
+          if (category.toLowerCase().includes('salon') || category.toLowerCase().includes('beauty')) {
+            activeCategoryPresets = servicePresets;
+            selectedService = "Haircut & Hair Styling";
+          } else {
+            // Re-render service cards dynamically for Gas Agency / non-salon businesses
+            setupDynamicCategoryCards(category, data.name);
+          }
+
           if (data.status === 'paused') {
             document.getElementById('mainTitle').textContent = 'Service Temporarily Paused';
             document.getElementById('mainDesc').textContent = 'Review collection for this business is temporarily paused by management.';
@@ -843,12 +881,69 @@
         console.error('Error fetching business settings', e);
       }
     }
+
+    function setupDynamicCategoryCards(category, name) {
+      const grid = document.getElementById('serviceCardsGrid');
+      if (!grid) return;
+
+      const catName = category || 'Gas Agency';
+      if (catName.toLowerCase().includes('gas')) {
+        grid.innerHTML = `
+          <div class="service-card-item active" data-service="LPG Refill Delivery">
+            <span class="service-card-icon">🔥</span>
+            <span class="service-card-label">LPG Refill Delivery</span>
+          </div>
+          <div class="service-card-item" data-service="New Gas Connection">
+            <span class="service-card-icon">📝</span>
+            <span class="service-card-label">New Gas Connection</span>
+          </div>
+          <div class="service-card-item" data-service="Stove & Safety Check">
+            <span class="service-card-icon">🛡️</span>
+            <span class="service-card-label">Stove & Safety Check</span>
+          </div>
+          <div class="service-card-item" data-service="Customer Support">
+            <span class="service-card-icon">📞</span>
+            <span class="service-card-label">Customer Support</span>
+          </div>
+        `;
+        selectedService = "LPG Refill Delivery";
+      } else {
+        grid.innerHTML = `
+          <div class="service-card-item active" data-service="Customer Support">
+            <span class="service-card-icon">🌟</span>
+            <span class="service-card-label">Customer Service</span>
+          </div>
+          <div class="service-card-item" data-service="Product & Quality">
+            <span class="service-card-icon">👍</span>
+            <span class="service-card-label">Product & Quality</span>
+          </div>
+        `;
+        selectedService = "Customer Support";
+        activeCategoryPresets = {
+          "Customer Support": [
+            { title: "🌟 Outstanding Customer Care", text: `Great experience with ${name || 'this business'}! Staff was prompt, polite, and helpful.` },
+            { title: "👍 High Quality & Professional Service", text: `Highly recommended! Excellent service quality and great team at ${name || 'this business'}.` }
+          ]
+        };
+      }
+
+      // Re-attach card click listeners
+      document.querySelectorAll('.service-card-item').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.service-card-item').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
+          selectedService = card.dataset.service;
+          renderPresetsForService(selectedService);
+        });
+      });
+    }
+
     loadBusiness();
 
     // Render Preset Review Cards for Currently Selected Service
     function renderPresetsForService(serviceName) {
       document.getElementById('presetCategoryLabel').textContent = serviceName;
-      const list = servicePresets[serviceName] || servicePresets["Haircut & Hair Styling"];
+      const list = activeCategoryPresets[serviceName] || servicePresets[serviceName] || Object.values(activeCategoryPresets)[0] || servicePresets["Haircut & Hair Styling"];
 
       selectedPresetIndex = 0; // Default select 1st option
 

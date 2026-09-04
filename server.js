@@ -722,7 +722,7 @@ app.get('/api/master/businesses', masterAuth, async (req, res) => {
 // Update Place ID, Password & Activate / Pause Business (Master Control)
 app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
   const { slug } = req.params;
-  const { googlePlaceId, status, tagline, address, adminPassword } = req.body;
+  const { googlePlaceId, status, tagline, address, adminPassword, category } = req.body;
 
   const current = await fetchBusinessBySlug(slug);
 
@@ -731,6 +731,7 @@ app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
     googlePlaceId: googlePlaceId !== undefined ? String(googlePlaceId).trim() : (current.googlePlaceId || ''),
     googleReviewUrl: formatGoogleReviewUrl(googlePlaceId !== undefined ? googlePlaceId : current.googlePlaceId, ''),
     adminPassword: adminPassword !== undefined ? String(adminPassword).trim() : (current.adminPassword || '5922'),
+    category: category !== undefined ? String(category).trim() : (current.category || 'Gas Agency'),
     status: status || (googlePlaceId ? 'active' : current.status),
     tagline: tagline || current.tagline,
     address: address || current.address
@@ -738,6 +739,51 @@ app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
 
   await saveFirestoreBusiness(updated);
   res.json({ ok: true, business: updated });
+});
+
+// Groq AI Dynamic Review Presets API
+app.get('/api/groq/presets', async (req, res) => {
+  const category = req.query.category || 'Gas Agency';
+  const name = req.query.name || 'GMB Business Profile';
+  
+  const groqApiKey = process.env.GROQ_API_KEY;
+  if (groqApiKey) {
+    try {
+      const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${groqApiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a Google My Business local SEO expert. Return ONLY valid JSON.'
+            },
+            {
+              role: 'user',
+              content: `Generate 4 service categories with 3 realistic 5-star customer review templates for a ${category} business named "${name}". Return JSON: { "services": { "Service Name": [ { "title": "...", "text": "..." } ] } }`
+            }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.6
+        })
+      });
+      if (groqRes.ok) {
+        const groqData = await groqRes.json();
+        const parsed = JSON.parse(groqData.choices[0].message.content);
+        if (parsed && parsed.services) {
+          return res.json({ category, name, services: parsed.services, source: 'groq_ai' });
+        }
+      }
+    } catch (e) {
+      console.error('Groq AI API error:', e.message);
+    }
+  }
+
+  res.json({ category, name, source: 'categorized_presets' });
 });
 
 // Quick Pause / Start Service (Master Control)

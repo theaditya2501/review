@@ -329,8 +329,12 @@
                   <label style="font-size: 13px;">Google Place ID or Maps Link</label>
                   <input id="placeId-${item.slug}" type="text" value="${item.googlePlaceId || ''}" placeholder="e.g. ChIJmcF2R3KDXjkR8uxzfKEdGyA or Maps Link">
                 </div>
-                <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 150px;">
-                  <label style="font-size: 13px;">Owner Account Password</label>
+                <div class="form-group" style="flex: 1.2; margin-bottom: 0; min-width: 140px;">
+                  <label style="font-size: 13px;">Category</label>
+                  <input id="category-${item.slug}" type="text" value="${item.category || 'Gas Agency'}" placeholder="e.g. Gas Agency, Salon">
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 120px;">
+                  <label style="font-size: 13px;">Owner Password</label>
                   <input id="adminPass-${item.slug}" type="text" value="${adminPass}" placeholder="e.g. 5922">
                 </div>
               </div>
@@ -381,14 +385,15 @@
 
     async function savePlaceIdAndActivate(slug) {
       const placeId = $(`placeId-${slug}`).value.trim();
+      const category = $(`category-${slug}`) ? $(`category-${slug}`).value.trim() : 'Gas Agency';
       const adminPassword = $(`adminPass-${slug}`) ? $(`adminPass-${slug}`).value.trim() : '';
       try {
         await api('/api/master/businesses/' + slug, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ googlePlaceId: placeId, adminPassword, status: 'active' })
+          body: JSON.stringify({ googlePlaceId: placeId, category, adminPassword, status: 'active' })
         });
-        alert('✅ Business details & owner password updated successfully!');
+        alert('✅ Business details, category & owner password updated successfully!');
         loadBusinesses();
         loadPaymentHistory();
       } catch (e) {
