@@ -202,7 +202,28 @@ async function fetchBusinessBySlug(slug) {
 
   const allLocal = getLocalBusinesses();
   const found = allLocal.find(b => b.slug === targetSlug || b.id === targetSlug);
-  return found || defaultDivyaBusiness;
+  if (found) return found;
+
+  if (targetSlug === 'divya-rathod-beauty-salon') {
+    return defaultDivyaBusiness;
+  }
+
+  // Construct isolated dynamic tenant object (NEVER return Divya Rathod for another business!)
+  const dynamicName = targetSlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return {
+    id: targetSlug,
+    slug: targetSlug,
+    name: dynamicName,
+    tagline: 'Google Verified Business Profile',
+    address: 'City Location',
+    phone: '',
+    googlePlaceId: '',
+    googleReviewUrl: '',
+    adminPassword: '5922',
+    plan: '₹199/month Autopay Active',
+    status: 'pending_setup',
+    createdAt: new Date().toISOString()
+  };
 }
 
 async function saveFirestoreBusiness(businessData) {
@@ -258,7 +279,7 @@ async function fetchTenantReviews(tenantSlug) {
     });
 
     if (targetSlug) {
-      list = list.filter(r => (r.tenantSlug || 'divya-rathod-beauty-salon') === targetSlug);
+      list = list.filter(r => (r.tenantSlug || '').toLowerCase().trim() === targetSlug);
     }
     list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     saveLocalSubmissions(list);
@@ -267,7 +288,7 @@ async function fetchTenantReviews(tenantSlug) {
     console.error('Firestore reviews fetch error, using local cache:', e.message);
     let list = getLocalSubmissions();
     if (targetSlug) {
-      list = list.filter(r => (r.tenantSlug || 'divya-rathod-beauty-salon') === targetSlug);
+      list = list.filter(r => (r.tenantSlug || '').toLowerCase().trim() === targetSlug);
     }
     return list;
   }

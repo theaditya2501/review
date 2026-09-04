@@ -517,6 +517,10 @@
     }
 
     $('downloadPosterBtn').onclick = () => {
+      if (currentSettings.status === 'pending_setup' || !currentSettings.googlePlaceId) {
+        alert('⏳ Account Setup Pending!\n\nOur management team is verifying your Google Business Profile & Place ID. Once activated by Master Admin, your 4K HD Standee Poster will be unlocked!');
+        return;
+      }
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       canvas.width = 1200; // 4K HD Quality

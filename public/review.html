@@ -786,7 +786,7 @@
       const urlParams = new URLSearchParams(window.location.search);
       currentTenantSlug = urlParams.get('tenant') || 'divya-rathod-beauty-salon';
     }
-    let currentPlaceId = 'ChIJmcF2R3KDXjkR8uxzfKEdGyA';
+    let currentPlaceId = '';
 
     window.copyTextToClipboard = function(text) {
       if (!text) text = feedbackText.value || 'Exceptional service!';
@@ -826,10 +826,11 @@
           if (data.status === 'paused') {
             document.getElementById('mainTitle').textContent = 'Service Temporarily Paused';
             document.getElementById('mainDesc').textContent = 'Review collection for this business is temporarily paused by management.';
-            document.querySelector('.stars-container').classList.add('hidden');
-          } else if (data.status === 'pending_setup') {
+            if (document.querySelector('.stars-container')) document.querySelector('.stars-container').classList.add('hidden');
+          } else if (data.status === 'pending_setup' || (!data.googlePlaceId && !data.googleReviewUrl)) {
             document.getElementById('mainTitle').textContent = 'Setup In Progress ⏳';
-            document.getElementById('mainDesc').textContent = 'This business profile setup is being activated by management. Please check back shortly!';
+            document.getElementById('mainDesc').textContent = 'This Google Business profile setup is currently being verified by management. Once activated, review submission will unlock!';
+            if (document.querySelector('.stars-container')) document.querySelector('.stars-container').classList.add('hidden');
           }
         }
       } catch (e) {
