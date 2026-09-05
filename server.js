@@ -187,6 +187,22 @@ function saveLocalBusinesses(list) {
   } catch (err) {}
 }
 
+function getLocalSubmissions() {
+  try {
+    if (fs.existsSync(REVIEWS_FILE)) {
+      const data = fs.readFileSync(REVIEWS_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {}
+  return [];
+}
+
+function saveLocalSubmissions(list) {
+  try {
+    fs.writeFileSync(REVIEWS_FILE, JSON.stringify(list, null, 2), 'utf8');
+  } catch (err) {}
+}
+
 // Firestore Single Source of Truth Helpers for Multi-Tenant Businesses
 async function fetchAllBusinesses() {
   const colRef = collection(db, 'businesses');
@@ -204,11 +220,28 @@ async function fetchBusinessBySlug(slug) {
   const targetSlug = String(slug).toLowerCase().trim();
   if (!targetSlug) return null;
 
-  const docRef = doc(db, 'businesses', targetSlug);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() };
+  try {
+    const docRef = doc(db, 'businesses', targetSlug);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { id: docSnap.id, ...docSnap.data() };
+    }
+
+    const colRef = collection(db, 'businesses');
+    const q = query(colRef, where('slug', '==', targetSlug));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      const docFound = snapshot.docs[0];
+      return { id: docFound.id, ...docFound.data() };
+    }
+  } catch (err) {
+    console.warn(`Firestore lookup notice for ${targetSlug}:`, err.message);
   }
+
+  const localList = getLocalBusinesses();
+  const localBiz = localList.find(b => (b.slug || b.id || '').toLowerCase().trim() === targetSlug);
+  if (localBiz) return localBiz;
+
   return null;
 }
 
@@ -300,11 +333,15 @@ function masterAuth(req, res, next) {
 
 // Helper to extract initials from business name
 function getInitials(name) {
-  const words = String(name || 'GMB').trim().split(/\s+/);
+  const clean = String(name || 'Business Profile').trim().replace(/[^a-zA-Z0-9\s]/g, '');
+  const words = clean.split(/\s+/).filter(Boolean);
   if (words.length >= 2) {
     return (words[0][0] + words[1][0]).toUpperCase();
   }
-  return words[0].substring(0, 2).toUpperCase();
+  if (words.length === 1 && words[0].length >= 2) {
+    return words[0].substring(0, 2).toUpperCase();
+  }
+  return 'BP';
 }
 
 // Helper to validate and extract Place ID or Google Maps link
@@ -629,8 +666,8 @@ app.post('/api/razorpay/verify-subscription', async (req, res) => {
   const newBusiness = {
     id: slug,
     slug,
-    name: businessName || 'New GMB Business',
-    tagline: 'Google Verified Business',
+    name: businessName || 'Business Profile',
+    tagline: 'Business Profile',
     category: 'General Business',
     phone: phone || '',
     passwordHash,
@@ -730,7 +767,8 @@ app.post('/api/razorpay/webhook', async (req, res) => {
 app.post('/api/admin/login', async (req, res) => {
   if (!applyRateLimit(req, res, 'admin_login', 10, 60000)) return;
 
-  const { slug, password } = req.body;
+  const slug = req.body.slug || req.body.tenantSlug;
+  const password = req.body.password;
   if (!slug || !password) {
     return res.status(400).json({ error: 'Business slug and password are required' });
   }
@@ -987,10 +1025,10 @@ app.get('/api/master/businesses', masterAuth, async (req, res) => {
       const bReviews = submissions.filter(r => (r.tenantSlug || '').toLowerCase().trim() === b.slug);
       const avgRating = bReviews.length ? (bReviews.reduce((acc, r) => acc + (r.rating || 5), 0) / bReviews.length).toFixed(1) : '5.0';
 
-      const { adminPassword, passwordHash, ...safeBiz } = b;
+      const { adminPassword, password, plainPassword, ownerPassword, passwordHash, ...safeBiz } = b;
       return {
         ...safeBiz,
-        hasPassword: Boolean(adminPassword || passwordHash),
+        hasPassword: Boolean(adminPassword || password || plainPassword || ownerPassword || passwordHash),
         totalReviews: bReviews.length,
         avgRating,
         reviewUrl: `${baseUrl}/r/${b.slug}`,
@@ -1018,7 +1056,7 @@ app.get('/api/master/businesses', masterAuth, async (req, res) => {
 
 app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
   const { slug } = req.params;
-  const { googlePlaceId, status, tagline, address, adminPassword, category, logoUrl } = req.body;
+  const { googlePlaceId, status, tagline, address, adminPassword, password, category, logoUrl } = req.body;
 
   const current = await fetchBusinessBySlug(slug);
   if (!current) {
@@ -1063,9 +1101,10 @@ app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
     googleLastSyncedAt = new Date().toISOString();
   }
 
+  const passInput = adminPassword || password;
   let passwordHash = current.passwordHash || null;
-  if (adminPassword !== undefined && String(adminPassword).trim() !== '') {
-    passwordHash = hashPassword(String(adminPassword).trim());
+  if (passInput !== undefined && String(passInput).trim() !== '') {
+    passwordHash = hashPassword(String(passInput).trim());
   }
 
   const updated = {
@@ -1085,13 +1124,51 @@ app.patch('/api/master/businesses/:slug', masterAuth, async (req, res) => {
     updatedAt: new Date().toISOString()
   };
 
-  delete updated.adminPassword; // Remove plaintext password key
+  // Strictly remove all plaintext password keys
+  delete updated.adminPassword;
+  delete updated.password;
+  delete updated.plainPassword;
+  delete updated.ownerPassword;
 
   await saveFirestoreBusiness(updated);
   await createAuditLog('Master Admin', 'Updated Business Details', slug, { googlePlaceId: finalPlaceId, status: targetStatus, category: updated.category });
 
   const { passwordHash: _, ...safeUpdated } = updated;
   res.json({ ok: true, business: safeUpdated });
+});
+
+// Master Admin Reset Owner Password (Hash using scrypt, store only passwordHash)
+app.post('/api/master/businesses/:slug/reset-password', masterAuth, async (req, res) => {
+  const { slug } = req.params;
+  const { password } = req.body;
+
+  if (!password || String(password).trim().length < 4) {
+    return res.status(400).json({ error: 'Password must be at least 4 characters long.' });
+  }
+
+  const current = await fetchBusinessBySlug(slug);
+  if (!current) {
+    return res.status(404).json({ error: 'Business account not found' });
+  }
+
+  const passwordHash = hashPassword(String(password).trim());
+
+  const updated = {
+    ...current,
+    passwordHash,
+    updatedAt: new Date().toISOString()
+  };
+
+  // Strictly eliminate any legacy plaintext password keys
+  delete updated.adminPassword;
+  delete updated.password;
+  delete updated.plainPassword;
+  delete updated.ownerPassword;
+
+  await saveFirestoreBusiness(updated);
+  await createAuditLog('Master Admin', 'Reset Owner Password', slug, { name: current.name });
+
+  res.json({ ok: true, message: 'Owner password updated successfully.' });
 });
 
 // Soft Delete Business Endpoint
@@ -1195,6 +1272,7 @@ app.get(['/api/reviews/suggestions', '/api/groq/presets'], async (req, res) => {
 
   const category = biz.category || 'General Business';
   const bizName = biz.name || 'Our Business';
+  const servicesList = Array.isArray(biz.services) && biz.services.length > 0 ? biz.services.join(', ') : '';
 
   const cacheKey = `suggestions:${biz.id || tenantSlug}:${category.toLowerCase()}`;
   const now = Date.now();
@@ -1218,6 +1296,7 @@ app.get(['/api/reviews/suggestions', '/api/groq/presets'], async (req, res) => {
 Generate 5-star review templates for the following business:
 - Business Name: "${bizName}"
 - Industry / Category: "${category}"
+${servicesList ? `- Key Services / Specialties: "${servicesList}"` : ''}
 
 Return ONLY valid JSON matching this exact structure:
 {
@@ -1322,9 +1401,84 @@ Provide 3 actionable tips in 2-3 concise sentences to improve Google Search & Ma
   }
 });
 
-// Single Page Application Frontend Routing Catch-all
-app.get('/r/:slug', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'review.html'));
+// Helper to safely escape HTML attributes and text
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Single Page Application Frontend Routing with Server-Side Hydration Pre-rendering
+app.get('/r/:slug', async (req, res) => {
+  const slug = String(req.params.slug || '').toLowerCase().trim();
+  const filePath = path.join(__dirname, 'public', 'review.html');
+
+  try {
+    let html = fs.readFileSync(filePath, 'utf8');
+    const biz = await fetchBusinessBySlug(slug);
+
+    if (biz && biz.status !== 'deleted') {
+      const initials = biz.initials || getInitials(biz.name);
+      const safeBiz = {
+        id: biz.id,
+        slug: biz.slug,
+        name: biz.name,
+        category: biz.category || 'General Business',
+        tagline: biz.tagline || '',
+        address: biz.address || '',
+        phone: biz.phone || '',
+        website: biz.website || '',
+        logoUrl: biz.logoUrl || '',
+        initials,
+        googlePlaceId: biz.googlePlaceId || '',
+        googleReviewUrl: formatGoogleReviewUrl(biz.googlePlaceId, biz.googleReviewUrl),
+        status: biz.status || 'pending_setup',
+        setupStatus: biz.status === 'active' ? 'completed' : 'pending',
+        googleSyncStatus: biz.googleSyncStatus || (biz.googlePlaceId ? 'pending_sync' : 'not_configured')
+      };
+
+      // 1. Dynamic document title
+      html = html.replace(/<title>.*?<\/title>/i, `<title>Rate Your Experience • ${escapeHtml(biz.name)}</title>`);
+
+      // 2. Dynamic cover title banner
+      html = html.replace(/<div class="cover-title" id="coverTitle">.*?<\/div>/i, `<div class="cover-title" id="coverTitle">${escapeHtml(biz.name)}</div>`);
+
+      // 3. Dynamic category subtitle
+      const sub = biz.category ? `${biz.name} • ${biz.category}` : biz.name;
+      html = html.replace(/<div class="subtitle" id="salonSub">.*?<\/div>/i, `<div class="subtitle" id="salonSub">${escapeHtml(sub)}</div>`);
+
+      // 4. Dynamic logo or initials badge
+      let badgeHtml = escapeHtml(initials);
+      if (biz.logoUrl && String(biz.logoUrl).trim()) {
+        badgeHtml = `<img src="${encodeURI(biz.logoUrl)}" alt="${escapeHtml(biz.name)}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none';this.parentElement.textContent='${escapeHtml(initials)}';">`;
+      }
+      html = html.replace(/<div class="brand-badge" id="brandBadge">.*?<\/div>/i, `<div class="brand-badge" id="brandBadge">${badgeHtml}</div>`);
+
+      // 5. Dynamic footer branding
+      html = html.replace(/<p id="footerText">.*?<\/p>/i, `<p id="footerText">${escapeHtml(biz.name)} • Verified Google Business Profile</p>`);
+
+      // 6. Pre-inject initial business state into window.__INITIAL_BUSINESS__
+      const scriptTag = `<script>window.__INITIAL_BUSINESS__ = ${JSON.stringify(safeBiz)};</script>`;
+      html = html.replace('</head>', `${scriptTag}\n</head>`);
+
+      return res.send(html);
+    } else {
+      // Unknown or non-existent business tenant
+      let notFoundHtml = html.replace(/<title>.*?<\/title>/i, '<title>Business Profile Not Found</title>');
+      notFoundHtml = notFoundHtml.replace(/<div class="cover-title" id="coverTitle">.*?<\/div>/i, '<div class="cover-title" id="coverTitle">Profile Not Found</div>');
+      notFoundHtml = notFoundHtml.replace(/<div class="brand-badge" id="brandBadge">.*?<\/div>/i, '<div class="brand-badge" id="brandBadge">404</div>');
+      notFoundHtml = notFoundHtml.replace(/<div class="subtitle" id="salonSub">.*?<\/div>/i, '<div class="subtitle" id="salonSub">Invalid Review Link</div>');
+      notFoundHtml = notFoundHtml.replace('</head>', `<script>window.__TENANT_NOT_FOUND__ = true;</script>\n</head>`);
+      return res.status(404).send(notFoundHtml);
+    }
+  } catch (err) {
+    console.error('Error serving /r/:slug:', err.message);
+    res.sendFile(filePath);
+  }
 });
 
 app.get('/admin', (req, res) => {
@@ -1335,19 +1489,60 @@ app.get('/master', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'super-admin.html'));
 });
 
-// Start Server and Listen on Port
-const server = app.listen(PORT, () => {
-  console.log(`✨ Multi-Tenant GMB Review Booster running on port ${PORT}`);
-  console.log(`🔑 Master Control Portal available at /master`);
-});
+// --- HTTPS & HTTP LISTENERS WITH 301 REDIRECTION ---
+const https = require('https');
+const http = require('http');
+
+const SSL_CERT_PATH = process.env.SSL_CERT_PATH || '/etc/letsencrypt/live/review.vexwick.store/fullchain.pem';
+const SSL_KEY_PATH = process.env.SSL_KEY_PATH || '/etc/letsencrypt/live/review.vexwick.store/privkey.pem';
+
+let server;
+let httpServer = null;
+
+if (fs.existsSync(SSL_CERT_PATH) && fs.existsSync(SSL_KEY_PATH)) {
+  try {
+    const sslOptions = {
+      cert: fs.readFileSync(SSL_CERT_PATH),
+      key: fs.readFileSync(SSL_KEY_PATH)
+    };
+    server = https.createServer(sslOptions, app).listen(443, () => {
+      console.log('🔒 HTTPS Server running on port 443 with TLS certificate');
+      console.log('🔑 Master Control Portal available at https://review.vexwick.store/master');
+    });
+
+    const redirectApp = express();
+    redirectApp.use((req, res) => {
+      const host = (req.headers.host || 'review.vexwick.store').split(':')[0];
+      res.redirect(301, `https://${host}${req.url}`);
+    });
+    httpServer = redirectApp.listen(80, () => {
+      console.log('🔄 HTTP (port 80) redirecting all traffic to HTTPS (port 443)');
+    });
+  } catch (sslErr) {
+    console.error('⚠️ Failed to initialize HTTPS with certificates:', sslErr.message);
+    server = app.listen(PORT, () => {
+      console.log(`✨ Multi-Tenant GMB Review Booster running on port ${PORT}`);
+    });
+  }
+} else {
+  server = app.listen(PORT, () => {
+    console.log(`✨ Multi-Tenant GMB Review Booster running on port ${PORT}`);
+    console.log(`🔑 Master Control Portal available at /master`);
+  });
+}
 
 // Graceful Shutdown for AWS EC2 Node process
 function gracefulShutdown(signal) {
   console.log(`\n🛑 Received ${signal}. Gracefully shutting down server...`);
-  server.close(() => {
-    console.log('✅ HTTP server closed. Process terminated cleanly.');
+  if (httpServer) httpServer.close();
+  if (server) {
+    server.close(() => {
+      console.log('✅ Server closed. Process terminated cleanly.');
+      process.exit(0);
+    });
+  } else {
     process.exit(0);
-  });
+  }
 
   setTimeout(() => {
     console.error('⚠️ Timeout waiting for connections to close. Force shutting down.');

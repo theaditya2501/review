@@ -552,11 +552,11 @@
 
         <!-- Header Cover Banner -->
         <div class="cover-banner">
-          <div class="cover-title" id="coverTitle">Google Verified Business</div>
+          <div class="cover-title" id="coverTitle">Business Profile</div>
         </div>
 
         <div class="brand-badge" id="brandBadge">⭐</div>
-        <div class="subtitle" id="salonSub">Google Business Profile</div>
+        <div class="subtitle" id="salonSub">Customer Reviews</div>
         <h1 id="mainTitle">How Was Your Experience?</h1>
         <p class="muted" id="mainDesc">Tap a star rating below to begin your review.</p>
 
@@ -609,8 +609,13 @@
 
           <!-- Direct Submit Button -->
           <button id="submitBtn" class="btn btn-gold btn-block">
-            ⭐ Post 5-Star Review on Google Maps
+            ⭐ Post Review on Google
           </button>
+
+          <!-- Fallback Anchor (pre-rendered for accessibility/popups) -->
+          <a id="googleReviewFallback" class="btn btn-gold btn-block hidden" target="_blank" rel="noopener noreferrer" style="margin-top: 12px; text-decoration: none; text-align: center;">
+            ⭐ Open Google Reviews
+          </a>
         </div>
 
         <!-- Step 3: Success Screen with Clear Paste Instructions -->
@@ -622,20 +627,47 @@
 
       <!-- Footer Info -->
       <footer style="text-align: center; color: rgba(255,255,255,0.7); font-size: 13px; margin-top: 10px;">
-        <p id="footerText">Verified Google Business Profile</p>
+        <p id="footerText">Verified Review Portal</p>
       </footer>
     </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <script>
-    const API_BASE = (location.protocol.startsWith('http') && location.port === '3000')
-      ? ''
-      : `${location.protocol.startsWith('http') ? location.protocol : 'http:'}//${location.hostname || '127.0.0.1'}:3000`;
+    const API_BASE = '';
 
     let selectedRating = 0;
     let selectedService = '';
-    let selectedPresetIndex = 0    let currentBusinessName = 'Business';
+    let selectedPresetIndex = 0;
+    let currentBusinessName = 'Business';
+    let currentPlaceId = '';
+    let googleReviewUrl = '';
+
+    function getGoogleReviewUrl() {
+      if (currentPlaceId && String(currentPlaceId).trim()) {
+        const pid = String(currentPlaceId).trim();
+        if (pid.startsWith('http://') || pid.startsWith('https://')) {
+          const m = pid.match(/placeid=([a-zA-Z0-9_-]+)/i);
+          if (m && m[1]) {
+            return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(m[1])}`;
+          }
+          return pid;
+        }
+        return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(pid)}`;
+      }
+      if (googleReviewUrl && String(googleReviewUrl).trim()) {
+        const raw = String(googleReviewUrl).trim();
+        if (raw.startsWith('http://') || raw.startsWith('https://')) {
+          const m = raw.match(/placeid=([a-zA-Z0-9_-]+)/i);
+          if (m && m[1]) {
+            return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(m[1])}`;
+          }
+          return raw;
+        }
+        return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(raw)}`;
+      }
+      return '';
+    }
 
     const ratingDetails = {
       1: { text: "💔 Unsatisfactory", class: "r-1" },
@@ -662,16 +694,16 @@
       const urlParams = new URLSearchParams(window.location.search);
       currentTenantSlug = urlParams.get('tenant') || urlParams.get('slug') || '';
     }
-    let currentPlaceId = '';
     let dynamicCategories = [];
     let selectedCategoryIndex = 0;
 
     function getInitials(name) {
-      if (!name) return 'GB';
-      const clean = name.trim().replace(/[^a-zA-Z0-9\s]/g, '');
+      if (!name) return 'BP';
+      const clean = String(name).trim().replace(/[^a-zA-Z0-9\s]/g, '');
       const parts = clean.split(/\s+/).filter(Boolean);
+      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
       if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return 'BP';
     }
 
     function showNotFoundScreen() {
@@ -679,7 +711,7 @@
       if (document.getElementById('brandBadge')) document.getElementById('brandBadge').textContent = '404';
       if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = 'Profile Not Found';
       if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = 'Invalid Review Link';
-      if (document.querySelector('footer p')) document.querySelector('footer p').textContent = 'Verified Google Business Profile Portal';
+      if (document.querySelector('footer p')) document.querySelector('footer p').textContent = 'Verified Review Portal';
 
       const mainTitle = document.getElementById('mainTitle');
       const mainDesc = document.getElementById('mainDesc');
@@ -701,7 +733,7 @@
       const detailsForm = document.getElementById('detailsForm');
 
       if (mainTitle) mainTitle.textContent = 'PROFILE SETUP IN PROGRESS ⏳';
-      if (mainDesc) mainDesc.textContent = 'Your Google Business Profile is currently being verified by our management team. Your review experience will become available after setup is completed.';
+      if (mainDesc) mainDesc.textContent = 'Your business review profile is currently being verified by our management team. Your review experience will become available after setup is completed.';
       if (starsContainer) starsContainer.style.display = 'none';
       if (detailsForm) detailsForm.style.display = 'none';
     }
@@ -720,55 +752,103 @@
       if (detailsForm) detailsForm.style.display = 'none';
     }
 
+    function applyBusinessData(data) {
+      if (!data) return false;
+
+      if (data.googleReviewUrl) {
+        googleReviewUrl = String(data.googleReviewUrl).trim().replace(/,+$/, '');
+      }
+      if (data.googlePlaceId) {
+        currentPlaceId = String(data.googlePlaceId).trim();
+      }
+
+      const initialUrl = getGoogleReviewUrl();
+      console.log(`[Verified Business Data] Tenant: '${currentTenantSlug}', PlaceID: '${currentPlaceId}', ReviewURL: '${initialUrl}'`);
+      
+      const fallbackAnchor = document.getElementById('googleReviewFallback');
+      if (fallbackAnchor) {
+        if (initialUrl) {
+          fallbackAnchor.href = initialUrl;
+          fallbackAnchor.textContent = '⭐ Open Google Reviews';
+        } else {
+          fallbackAnchor.textContent = 'Google Review Setup Pending';
+          fallbackAnchor.removeAttribute('href');
+        }
+      }
+
+      if (data.name) {
+        currentBusinessName = data.name;
+        document.title = `Rate Your Experience • ${data.name}`;
+        if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = data.name;
+        if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = data.category ? `${data.name} • ${data.category}` : data.name;
+        
+        const badge = document.getElementById('brandBadge');
+        if (badge) {
+          const initials = data.initials || getInitials(data.name);
+          if (data.logoUrl && String(data.logoUrl).trim()) {
+            badge.innerHTML = `<img src="${encodeURI(data.logoUrl)}" alt="${data.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;" onerror="this.style.display='none';this.parentElement.textContent='${initials}';">`;
+          } else {
+            badge.textContent = initials;
+          }
+        }
+        if (document.querySelector('footer p')) {
+          document.querySelector('footer p').textContent = `${data.name} • Verified Google Business Profile`;
+        }
+      }
+
+      if (data.status === 'paused') {
+        showPausedScreen(data.name);
+        return false;
+      }
+
+      if (data.status === 'pending_setup' || (!data.googlePlaceId && !data.googleReviewUrl)) {
+        showPendingScreen(data.name);
+        return false;
+      }
+
+      return true;
+    }
+
     // Fetch Business Settings
     async function loadBusiness() {
-      if (!currentTenantSlug) {
+      if (window.__TENANT_NOT_FOUND__) {
         showNotFoundScreen();
         return;
       }
+
+      let isHydrated = false;
+      if (window.__INITIAL_BUSINESS__) {
+        const canProceed = applyBusinessData(window.__INITIAL_BUSINESS__);
+        isHydrated = true;
+        if (!canProceed) return;
+      }
+
+      if (!currentTenantSlug) {
+        if (!isHydrated) showNotFoundScreen();
+        return;
+      }
+
       try {
-        const res = await fetch(API_BASE + '/api/business?tenant=' + currentTenantSlug);
+        const res = await fetch(API_BASE + '/api/business?tenant=' + encodeURIComponent(currentTenantSlug));
         if (!res.ok || res.status === 404) {
-          showNotFoundScreen();
+          if (!isHydrated) showNotFoundScreen();
           return;
         }
 
         const data = await res.json();
-        if (data.googleReviewUrl) {
-          googleReviewUrl = String(data.googleReviewUrl).trim().replace(/,+$/, '');
-        }
-        if (data.googlePlaceId) {
-          currentPlaceId = data.googlePlaceId;
-        }
-        if (data.name) {
-          currentBusinessName = data.name;
-          document.title = `Rate Your Experience • ${data.name}`;
-          if (document.getElementById('coverTitle')) document.getElementById('coverTitle').textContent = data.name;
-          if (document.getElementById('salonSub')) document.getElementById('salonSub').textContent = data.category ? `${data.name} • ${data.category}` : data.name;
-          if (document.getElementById('brandBadge')) {
-            document.getElementById('brandBadge').textContent = data.initials || getInitials(data.name);
-          }
-          if (document.querySelector('footer p')) {
-            document.querySelector('footer p').textContent = `${data.name} • Verified Google Business Profile`;
-          }
-        }
-
-        if (data.status === 'paused') {
-          showPausedScreen(data.name);
-          return;
-        }
-
-        if (data.status === 'pending_setup' || (!data.googlePlaceId && !data.googleReviewUrl)) {
-          showPendingScreen(data.name);
-          return;
-        }
+        const canProceed = applyBusinessData(data);
+        if (!canProceed) return;
 
         // Active business: load dynamic category suggestions via Groq
         await loadReviewSuggestions();
 
       } catch (e) {
         console.error('Error fetching business settings', e);
-        showNotFoundScreen();
+        if (!isHydrated) {
+          showNotFoundScreen();
+        } else {
+          await loadReviewSuggestions();
+        }
       }
     }
 
@@ -931,18 +1011,7 @@
         detailsForm.classList.remove('hidden');
 
         if (selectedRating >= 4) {
-          submitBtn.textContent = '⭐ Post 5-Star Review on Google Maps';
-        } else {
-          submitBtn.textContent = 'Submit Private Feedback to Management ❤️';
-        }
-      });
-    });'hidden');
-
-        // Initial render for active service
-        renderPresetsForService(selectedService);
-
-        if (selectedRating >= 4) {
-          submitBtn.textContent = '⭐ Post 5-Star Review on Google Maps';
+          submitBtn.textContent = '⭐ Post Review on Google';
         } else {
           submitBtn.textContent = 'Submit Private Feedback to Management ❤️';
         }
@@ -964,8 +1033,47 @@
       charCount.textContent = `${feedbackText.value.length} / 500`;
     });
 
+    // Clipboard copy helper
+    async function copyReviewText(text) {
+      if (!text) return false;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (err) {}
+      try {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = text;
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-9999px';
+        tempInput.style.top = '-9999px';
+        tempInput.setAttribute('readonly', '');
+        document.body.appendChild(tempInput);
+        tempInput.focus();
+        tempInput.select();
+        const success = document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        return success;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function copyTextToClipboard(text) {
+      copyReviewText(text).then(ok => {
+        const btn = document.getElementById('copyAgainBtn');
+        if (btn) {
+          btn.textContent = ok ? '✓ Copied to Clipboard!' : 'Please copy manually';
+          setTimeout(() => {
+            if (btn) btn.textContent = '📋 Re-Copy Review Text';
+          }, 2500);
+        }
+      });
+    }
+
     // Submit Action
-    submitBtn.addEventListener('click', () => {
+    submitBtn.addEventListener('click', async () => {
       if (selectedRating === 0) {
         alert('Please tap a star rating first.');
         return;
@@ -973,89 +1081,153 @@
 
       const userReviewText = feedbackText.value.trim();
 
-      // Silent clipboard copy fallback if text exists
-      if (selectedRating >= 4 && userReviewText) {
-        try {
-          if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(userReviewText);
-          } else {
-            const tempInput = document.createElement('textarea');
-            tempInput.value = userReviewText;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-          }
-        } catch (err) { }
-      }
-
-      // Open Google Review Write page (direct review dialog)
       if (selectedRating >= 4) {
-        const writeUrl = (currentPlaceId && currentPlaceId.trim())
-          ? `https://search.google.com/local/writereview?hl=en&placeid=${currentPlaceId.trim()}&rating=${selectedRating}&review=1`
-          : googleReviewUrl;
-
-        // Notify user about auto-copied text for zero-friction paste
-        if (userReviewText) {
-          alert('📋 Review Text Copied to Clipboard!\n\nWhen Google opens:\n1. Tap 5 Stars ⭐⭐⭐⭐⭐\n2. Long press / Ctrl+V to PASTE your review\n3. Click Post!');
+        const writeUrl = getGoogleReviewUrl();
+        if (!writeUrl) {
+          alert('Google Review Setup Pending. Google review submissions will be unlocked once Place ID verification is complete.');
+          return;
         }
 
-        window.open(writeUrl, '_blank');
-      }
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Opening Google Reviews...';
 
-      // Save review asynchronously
-      const payload = {
-        tenantSlug: currentTenantSlug,
-        rating: selectedRating,
-        service: selectedService,
-        feedback: userReviewText
-      };
+        console.log(`[Google Review Submit] Tenant: '${currentTenantSlug}', PlaceID: '${currentPlaceId}', URL: '${writeUrl}'`);
 
-      fetch(API_BASE + '/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(err => {
-        console.warn('API save notice:', err);
-      });
+        // 1. Prepare anchor href
+        const fallbackAnchor = document.getElementById('googleReviewFallback');
+        if (fallbackAnchor && writeUrl) {
+          fallbackAnchor.href = writeUrl;
+        }
 
-      // Show success screen
-      detailsForm.classList.add('hidden');
-      document.querySelector('.stars-container').classList.add('hidden');
-      document.getElementById('mainTitle').textContent = 'Thank You!';
-      document.getElementById('mainDesc').textContent = 'We appreciate your valuable feedback!';
+        // 2. Copy review text to clipboard (failure must never prevent navigation)
+        if (userReviewText) {
+          try {
+            await copyReviewText(userReviewText);
+          } catch (e) {
+            console.warn('Clipboard copy error:', e);
+          }
+        }
 
-      successContainer.classList.remove('hidden');
+        // 3. Attempt to open Google Review URL (No alert before opening!)
+        let opened = false;
+        if (writeUrl) {
+          try {
+            const win = window.open(writeUrl, '_blank', 'noopener,noreferrer');
+            if (win && !win.closed && typeof win.closed !== 'undefined') {
+              opened = true;
+            }
+          } catch (e) {
+            opened = false;
+          }
+        }
 
-      if (selectedRating >= 4) {
+        // 4. Save review asynchronously to backend API
+        const payload = {
+          tenantSlug: currentTenantSlug,
+          rating: selectedRating,
+          service: dynamicCategories[selectedCategoryIndex]?.name || '',
+          feedback: userReviewText
+        };
+
+        fetch(API_BASE + '/api/reviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).catch(err => {
+          console.warn('API save notice:', err);
+        });
+
+        // 5. Show confirmation / fallback UI
+        detailsForm.classList.add('hidden');
+        document.querySelector('.stars-container').classList.add('hidden');
+        document.getElementById('mainTitle').textContent = 'Thank You!';
+        document.getElementById('mainDesc').textContent = 'We appreciate your valuable feedback!';
+
+        successContainer.classList.remove('hidden');
         launchConfetti();
 
-        const escapedText = userReviewText.replace(/"/g, '&quot;');
+        const escapedText = userReviewText.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+
+        const headerTitle = opened 
+          ? 'Google Reviews Opened' 
+          : 'Google Reviews could not be opened automatically.';
+
+        const messageText = opened
+          ? 'Your review text has been copied. When Google Reviews opens, simply <b>Paste (Ctrl + V / Long Press)</b> and tap Post!'
+          : 'Your review text has been copied. Please click the button below to open Google Reviews and post your review.';
 
         successContainer.innerHTML = `
           <div style="padding: 10px 0; text-align: center;">
-            <div style="font-size: 54px; margin-bottom: 10px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));">✨ 🎉 💖</div>
-            <h2 style="margin-bottom: 6px; color: var(--primary);">Review Text Copied to Clipboard!</h2>
-            <p class="muted" style="margin-bottom: 16px; font-size: 15px;">
-              Your 5-star review has been copied. When Google Maps opens, <b>Paste (Ctrl + V)</b> it into the review box!
+            <div style="font-size: 54px; margin-bottom: 10px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.15));">✨ 🎉 ⭐</div>
+            <h2 id="successTitle" style="margin-bottom: 8px; color: var(--primary); font-size: 24px;">${headerTitle}</h2>
+            <p class="muted" style="margin-bottom: 16px; font-size: 15px; line-height: 1.5;">
+              ${messageText}
             </p>
 
-            <div style="background: var(--surface-alt); padding: 14px; border-radius: 12px; border: 1px dashed var(--border); margin-bottom: 20px; text-align: left; font-size: 14px; color: var(--text-main);">
-              <b>📋 Selected Review Text:</b>
-              <div id="selectedTextDisplay" style="margin-top: 6px; color: var(--primary); font-weight: 600;">${userReviewText || 'Exceptional service and wonderful staff!'}</div>
-            </div>
+            ${userReviewText ? `
+              <div style="background: var(--surface-alt); padding: 14px; border-radius: 12px; border: 1px dashed var(--border); margin-bottom: 18px; text-align: left; font-size: 14px; color: var(--text-main);">
+                <b>📋 Your Copied Review Text:</b>
+                <div id="selectedTextDisplay" style="margin-top: 6px; color: var(--primary); font-weight: 600;">${userReviewText}</div>
+              </div>
+            ` : ''}
 
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-              <button id="copyAgainBtn" onclick="copyTextToClipboard('${escapedText}')" class="btn btn-gold btn-block" style="font-size: 16px; padding: 14px;">
-                📋 Re-Copy Review Text
-              </button>
-              <a id="gReviewDirectBtn" class="btn btn-secondary btn-block" href="${writeUrl}" target="_blank" rel="noopener" style="font-size: 16px; padding: 14px;">
-                ⭐ Open Google Maps & Paste Review
+            ${writeUrl ? `
+            <div style="background: rgba(212, 175, 55, 0.08); border: 1.5px solid var(--accent-gold); border-radius: 14px; padding: 18px 16px; margin-bottom: 16px;">
+              <p style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 10px;">
+                If Google Reviews did not open automatically:
+              </p>
+              <a id="googleReviewFallback" class="btn btn-gold btn-block" href="${writeUrl}" target="_blank" rel="noopener noreferrer" style="font-size: 16px; padding: 15px; text-decoration: none; font-weight: 700; display: inline-flex;">
+                ⭐ Open Google Reviews
               </a>
             </div>
+            ` : `
+            <div style="background: rgba(212, 175, 55, 0.08); border: 1.5px solid var(--accent-gold); border-radius: 14px; padding: 18px 16px; margin-bottom: 16px;">
+              <p style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 0;">
+                Google Review Setup Pending
+              </p>
+            </div>
+            `}
+
+            ${userReviewText ? `
+              <button id="copyAgainBtn" onclick="copyTextToClipboard('${escapedText}')" class="btn btn-secondary btn-block" style="font-size: 15px; padding: 12px;">
+                📋 Re-Copy Review Text
+              </button>
+            ` : ''}
           </div>
         `;
+
+        setTimeout(() => {
+          successContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+
       } else {
+        // 1-3 Stars: Private feedback flow (Google does NOT open)
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting Feedback...';
+
+        const payload = {
+          tenantSlug: currentTenantSlug,
+          rating: selectedRating,
+          service: dynamicCategories[selectedCategoryIndex]?.name || '',
+          feedback: userReviewText
+        };
+
+        try {
+          await fetch(API_BASE + '/api/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+        } catch (err) {
+          console.warn('API save notice:', err);
+        }
+
+        detailsForm.classList.add('hidden');
+        document.querySelector('.stars-container').classList.add('hidden');
+        document.getElementById('mainTitle').textContent = 'Thank You!';
+        document.getElementById('mainDesc').textContent = 'We appreciate your valuable feedback!';
+
+        successContainer.classList.remove('hidden');
         successContainer.innerHTML = `
           <div style="padding: 10px 0; text-align: center;">
             <div style="font-size: 52px; margin-bottom: 12px;">❤️ 🙏</div>
@@ -1065,6 +1237,10 @@
             </p>
           </div>
         `;
+
+        setTimeout(() => {
+          successContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
       }
     });
 

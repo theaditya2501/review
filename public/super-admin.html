@@ -234,6 +234,113 @@
       </div>
     </div>
 
+    <!-- Manage Business Modal -->
+    <div id="manageModal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+      <div class="card" style="max-width: 600px; width: 100%; margin: 0; max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px;">
+          <div>
+            <span class="subtitle" id="manageModalSlug" style="margin:0;">Manage Tenant</span>
+            <h2 id="manageModalName" style="margin:2px 0 0 0; font-family: var(--font-serif); font-size: 24px; color: var(--primary);"></h2>
+          </div>
+          <button onclick="closeManageModal()" class="btn btn-secondary btn-sm" style="padding:4px 10px;">✕</button>
+        </div>
+
+        <!-- Section: Owner Password -->
+        <div style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Owner Password</div>
+              <div style="font-size: 15px; font-weight: 700; margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                <span id="manageModalPasswordDisplay" style="letter-spacing: 2px;">●●●●●●●●</span>
+                <span id="manageModalPasswordBadge" class="badge badge-active" style="font-size: 11px;">Status: Configured</span>
+              </div>
+            </div>
+            <button id="btnOpenResetPassword" onclick="toggleResetPasswordForm()" class="btn btn-gold btn-sm">
+              🔑 Reset Owner Password
+            </button>
+          </div>
+
+          <!-- Password Reset Box (Collapsed by default) -->
+          <div id="resetPasswordContainer" class="hidden" style="border-top: 1px dashed var(--border); padding-top: 14px; margin-top: 12px;">
+            <div id="resetPasswordAlert" class="hidden" style="padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 12px;"></div>
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label style="font-size: 13px;">New Password *</label>
+              <div style="display: flex; gap: 8px;">
+                <input id="resetNewPassword" type="password" placeholder="Enter new password" style="flex: 1;">
+                <button type="button" onclick="generateSecurePassword()" class="btn btn-secondary btn-sm" style="white-space: nowrap;">
+                  🎲 Generate
+                </button>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="font-size: 13px;">Confirm Password *</label>
+              <input id="resetConfirmPassword" type="password" placeholder="Confirm new password">
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button id="btnSubmitResetPassword" onclick="submitResetPassword()" class="btn btn-gold btn-sm">
+                💾 Update Password
+              </button>
+              <button type="button" onclick="toggleResetPasswordForm(false)" class="btn btn-secondary btn-sm">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Google Place ID & Category -->
+        <div style="background: var(--surface-alt); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 16px;">
+          <h4 style="font-size: 14px; color: var(--primary); margin-bottom: 10px;">📍 Google Profile & Category</h4>
+          <div class="form-group" style="margin-bottom: 10px;">
+            <label style="font-size: 13px;">Google Place ID or Maps Link</label>
+            <input id="managePlaceId" type="text" placeholder="e.g. ChIJmcF2R3KDXjkR8uxzfKEdGyA or Google Maps URL">
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label style="font-size: 13px;">Category</label>
+            <input id="manageCategory" type="text" placeholder="e.g. Gas Agency, Beauty Salon">
+          </div>
+          <button onclick="saveManageDetails()" class="btn btn-gold btn-sm">
+            🔍 Save & Verify Google Profile
+          </button>
+        </div>
+
+        <!-- Section: Service Actions -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;">
+          <button id="manageToggleStatusBtn" onclick="toggleActiveManageStatus()" class="btn btn-secondary btn-sm"></button>
+          <button onclick="runGroqAnalysisFromManage()" class="btn btn-secondary btn-sm">
+            🤖 Groq Analyze Profile
+          </button>
+          <button onclick="deleteFromManage()" class="btn btn-danger btn-sm" style="margin-left: auto;">
+            🗑️ Delete Account
+          </button>
+        </div>
+
+        <div id="manageAiAnalysisBox" class="hidden" style="background: #fff; padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-gold); margin-bottom: 16px; font-size: 13px;">
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button onclick="closeManageModal()" class="btn btn-secondary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR Code Preview Modal -->
+    <div id="qrModal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px;">
+      <div class="card" style="max-width: 440px; width: 100%; margin: 0; text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <span class="subtitle" style="margin:0;">QR Code Standee Preview</span>
+          <button onclick="closeQrModal()" class="btn btn-secondary btn-sm" style="padding:4px 10px;">✕</button>
+        </div>
+        <h3 id="qrModalName" style="font-family: var(--font-serif); font-size: 22px; color: var(--primary); margin-bottom: 4px;"></h3>
+        <p id="qrModalCategory" class="muted" style="font-size: 13px; margin-bottom: 14px;"></p>
+        <span id="qrModalInitials" style="display:none;"></span>
+        <div id="qrModalPreviewContainer" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 16px;"></div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+          <a id="qrDownloadBtn" class="btn btn-gold btn-sm" style="display: none;">⬇️ Download QR Image</a>
+          <button onclick="closeQrModal()" class="btn btn-secondary btn-sm">Close</button>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <script>
@@ -392,7 +499,11 @@
       } catch (e) {}
     }
 
+    let cachedBusinessList = [];
+    let activeManageSlug = '';
+
     function renderBusinesses(list) {
+      cachedBusinessList = list || [];
       const container = $('bizList');
       if (!list || list.length === 0) {
         container.innerHTML = '<p class="muted">No business accounts found.</p>';
@@ -431,55 +542,30 @@
               </div>
             </div>
 
-            <div style="background: var(--surface-alt); padding: 16px; border-radius: 12px; margin: 12px 0; border: 1px dashed var(--border);">
-              <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 10px;">
-                <div class="form-group" style="flex: 2; margin-bottom: 0;">
-                  <label style="font-size: 13px;">Google Place ID or Maps Link</label>
-                  <input id="placeId-${item.slug}" type="text" value="${item.googlePlaceId || ''}" placeholder="e.g. ChIJmcF2R3KDXjkR8uxzfKEdGyA or Maps Link">
-                </div>
-                <div class="form-group" style="flex: 1.2; margin-bottom: 0; min-width: 140px;">
-                  <label style="font-size: 13px;">Category</label>
-                  <input id="category-${item.slug}" type="text" value="${item.category || ''}" placeholder="e.g. Gas Agency, Dental Clinic">
-                </div>
-                <div class="form-group" style="flex: 1; margin-bottom: 0; min-width: 120px;">
-                  <label style="font-size: 13px;">Reset Owner Password</label>
-                  <input id="adminPass-${item.slug}" type="password" value="" placeholder="Leave blank to keep existing">
-                </div>
+            <div style="background: var(--surface-alt); padding: 14px 16px; border-radius: 12px; margin: 12px 0; border: 1px dashed var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <span style="font-size: 13px; color: var(--text-muted);">Owner Password:</span>
+                <span style="font-weight: 700; margin-left: 6px; letter-spacing: 1.5px;">${item.hasPassword ? '●●●●●●●●' : 'Not Configured'}</span>
+                <span class="badge ${item.hasPassword ? 'badge-active' : 'badge-pending'}" style="margin-left: 8px; font-size: 11px;">
+                  Status: ${item.hasPassword ? 'Configured' : 'Not Configured'}
+                </span>
               </div>
-
-              ${item.aiAnalysis ? `
-                <div style="background: #ffffff; padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-gold); margin-bottom: 12px; font-size: 13px;">
-                  🤖 <b>Groq GMB Analysis:</b> ${item.aiAnalysis}
-                </div>
-              ` : ''}
-
-              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="savePlaceIdAndActivate('${item.slug}')" class="btn btn-gold btn-sm">
-                  🔍 Configure Google Profile & Verify
-                </button>
-
-                <button onclick="runGroqAnalysis('${item.slug}')" class="btn btn-secondary btn-sm">
-                  🤖 Groq Analyze GMB Profile
-                </button>
-                
-                ${item.status === 'paused' ? `
-                  <button onclick="toggleServiceStatus('${item.slug}', 'active')" class="btn btn-start btn-sm">
-                    ▶️ Start / Reactivate Service
-                  </button>
-                ` : `
-                  <button onclick="toggleServiceStatus('${item.slug}', 'paused')" class="btn btn-pause btn-sm">
-                    ⏸️ Pause / Stop Service
-                  </button>
-                `}
-
-                <button onclick="deleteBusiness('${item.slug}')" class="btn btn-danger btn-sm">
-                  🗑️ Delete
-                </button>
-              </div>
+              <button onclick="openManageModal('${item.slug}')" class="btn btn-gold btn-sm">
+                ⚙️ Manage
+              </button>
             </div>
 
+            ${item.aiAnalysis ? `
+              <div style="background: #ffffff; padding: 12px 14px; border-radius: 8px; border-left: 3px solid var(--accent-gold); margin-bottom: 12px; font-size: 13px;">
+                🤖 <b>Groq GMB Analysis:</b> ${item.aiAnalysis}
+              </div>
+            ` : ''}
+
             <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-              <button onclick="previewTenantQr('${item.slug}')" class="btn btn-gold btn-sm">
+              <button onclick="openManageModal('${item.slug}')" class="btn btn-gold btn-sm">
+                ⚙️ Manage
+              </button>
+              <button onclick="previewTenantQr('${item.slug}')" class="btn btn-secondary btn-sm">
                 📱 Preview QR & Standee
               </button>
               <a href="${reviewUrl}" target="_blank" class="btn btn-secondary btn-sm">
@@ -488,10 +574,232 @@
               <a href="${adminUrl}" target="_blank" class="btn btn-secondary btn-sm">
                 🔑 Owner Dashboard Link
               </a>
+              <button onclick="deleteBusiness('${item.slug}')" class="btn btn-danger btn-sm" style="margin-left: auto;">
+                🗑️ Delete
+              </button>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function openManageModal(slug) {
+      activeManageSlug = slug;
+      const biz = cachedBusinessList.find(b => b.slug === slug);
+      if (!biz) return;
+
+      $('manageModalSlug').textContent = `Slug: ${biz.slug} | Category: ${biz.category || 'General Business'}`;
+      $('manageModalName').textContent = biz.name;
+      $('managePlaceId').value = biz.googlePlaceId || '';
+      $('manageCategory').value = biz.category || '';
+
+      const passDisplay = $('manageModalPasswordDisplay');
+      const passBadge = $('manageModalPasswordBadge');
+      if (biz.hasPassword) {
+        passDisplay.textContent = '●●●●●●●●';
+        passBadge.textContent = 'Status: Configured';
+        passBadge.className = 'badge badge-active';
+      } else {
+        passDisplay.textContent = 'Not Configured';
+        passBadge.textContent = 'Status: Not Configured';
+        passBadge.className = 'badge badge-pending';
+      }
+
+      toggleResetPasswordForm(false);
+
+      const toggleBtn = $('manageToggleStatusBtn');
+      if (biz.status === 'paused') {
+        toggleBtn.textContent = '▶️ Start / Reactivate Service';
+        toggleBtn.className = 'btn btn-start btn-sm';
+      } else {
+        toggleBtn.textContent = '⏸️ Pause / Stop Service';
+        toggleBtn.className = 'btn btn-pause btn-sm';
+      }
+
+      const aiBox = $('manageAiAnalysisBox');
+      if (biz.aiAnalysis) {
+        aiBox.classList.remove('hidden');
+        aiBox.innerHTML = `🤖 <b>Groq GMB Analysis:</b> ${biz.aiAnalysis}`;
+      } else {
+        aiBox.classList.add('hidden');
+      }
+
+      $('manageModal').classList.remove('hidden');
+      $('manageModal').style.display = 'flex';
+    }
+
+    function closeManageModal() {
+      $('manageModal').classList.add('hidden');
+      $('manageModal').style.display = 'none';
+      toggleResetPasswordForm(false);
+      activeManageSlug = '';
+    }
+
+    function toggleResetPasswordForm(show) {
+      const container = $('resetPasswordContainer');
+      const alertBox = $('resetPasswordAlert');
+      alertBox.classList.add('hidden');
+      alertBox.textContent = '';
+      if (show === undefined) {
+        container.classList.toggle('hidden');
+      } else if (show) {
+        container.classList.remove('hidden');
+      } else {
+        container.classList.add('hidden');
+      }
+      $('resetNewPassword').value = '';
+      $('resetConfirmPassword').value = '';
+    }
+
+    function generateSecurePassword() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*';
+      let pass = '';
+      const arr = new Uint32Array(12);
+      window.crypto.getRandomValues(arr);
+      for (let i = 0; i < 12; i++) {
+        pass += chars[arr[i] % chars.length];
+      }
+      $('resetNewPassword').value = pass;
+      $('resetConfirmPassword').value = pass;
+      $('resetNewPassword').type = 'text';
+      setTimeout(() => {
+        if ($('resetNewPassword')) $('resetNewPassword').type = 'password';
+      }, 5000);
+    }
+
+    async function submitResetPassword() {
+      if (!activeManageSlug) return;
+      const newPass = $('resetNewPassword').value.trim();
+      const confirmPass = $('resetConfirmPassword').value.trim();
+      const alertBox = $('resetPasswordAlert');
+
+      if (!newPass) {
+        alertBox.className = 'badge-pending';
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fff1f2';
+        alertBox.style.color = '#be123c';
+        alertBox.style.border = '1px solid #fecdd3';
+        alertBox.textContent = 'Please enter a new password.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      if (newPass.length < 4) {
+        alertBox.className = 'badge-pending';
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fff1f2';
+        alertBox.style.color = '#be123c';
+        alertBox.style.border = '1px solid #fecdd3';
+        alertBox.textContent = 'Password must be at least 4 characters long.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      if (newPass !== confirmPass) {
+        alertBox.className = 'badge-pending';
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fff1f2';
+        alertBox.style.color = '#be123c';
+        alertBox.style.border = '1px solid #fecdd3';
+        alertBox.textContent = 'Passwords do not match. Please re-type.';
+        alertBox.classList.remove('hidden');
+        return;
+      }
+
+      $('btnSubmitResetPassword').disabled = true;
+      $('btnSubmitResetPassword').textContent = 'Updating...';
+
+      try {
+        const res = await api('/api/master/businesses/' + activeManageSlug + '/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: newPass })
+        });
+
+        if (res.ok) {
+          alertBox.className = 'badge-active';
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#dcfce7';
+          alertBox.style.color = '#15803d';
+          alertBox.style.border = '1px solid #bbf7d0';
+          alertBox.textContent = 'Owner password updated successfully.';
+          alertBox.classList.remove('hidden');
+
+          $('manageModalPasswordDisplay').textContent = '●●●●●●●●';
+          $('manageModalPasswordBadge').textContent = 'Status: Configured';
+          $('manageModalPasswordBadge').className = 'badge badge-active';
+
+          const b = cachedBusinessList.find(item => item.slug === activeManageSlug);
+          if (b) b.hasPassword = true;
+
+          setTimeout(() => {
+            toggleResetPasswordForm(false);
+            loadBusinesses();
+          }, 1500);
+        } else {
+          alertBox.className = 'badge-pending';
+          alertBox.style.display = 'block';
+          alertBox.style.background = '#fff1f2';
+          alertBox.style.color = '#be123c';
+          alertBox.style.border = '1px solid #fecdd3';
+          alertBox.textContent = res.error || 'Failed to update owner password';
+          alertBox.classList.remove('hidden');
+        }
+      } catch (err) {
+        alertBox.className = 'badge-pending';
+        alertBox.style.display = 'block';
+        alertBox.style.background = '#fff1f2';
+        alertBox.style.color = '#be123c';
+        alertBox.style.border = '1px solid #fecdd3';
+        alertBox.textContent = err.message || 'Error updating password';
+        alertBox.classList.remove('hidden');
+      } finally {
+        $('btnSubmitResetPassword').disabled = false;
+        $('btnSubmitResetPassword').textContent = '💾 Update Password';
+      }
+    }
+
+    async function saveManageDetails() {
+      if (!activeManageSlug) return;
+      const placeId = $('managePlaceId').value.trim();
+      const category = $('manageCategory').value.trim();
+      try {
+        const res = await api('/api/master/businesses/' + activeManageSlug, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ googlePlaceId: placeId, category })
+        });
+        if (res.ok) {
+          alert('✅ Business Google Profile & Category saved successfully!');
+          closeManageModal();
+          loadBusinesses();
+        } else {
+          alert('❌ ' + (res.error || 'Failed to update business'));
+        }
+      } catch (e) {
+        alert('❌ ' + (e.error || e.message || 'Failed to update business'));
+      }
+    }
+
+    async function toggleActiveManageStatus() {
+      if (!activeManageSlug) return;
+      const biz = cachedBusinessList.find(b => b.slug === activeManageSlug);
+      if (!biz) return;
+      const newStatus = biz.status === 'paused' ? 'active' : 'paused';
+      await toggleServiceStatus(activeManageSlug, newStatus);
+      closeManageModal();
+    }
+
+    async function runGroqAnalysisFromManage() {
+      if (!activeManageSlug) return;
+      await runGroqAnalysis(activeManageSlug);
+    }
+
+    async function deleteFromManage() {
+      if (!activeManageSlug) return;
+      const slug = activeManageSlug;
+      closeManageModal();
+      await deleteBusiness(slug);
     }
 
     async function previewTenantQr(slug) {

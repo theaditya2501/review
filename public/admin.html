@@ -223,8 +223,8 @@
               <div>
                 <div id="posterPreview" class="poster-preview-card">
                   <div class="brand-badge" id="posterBadge">⭐</div>
-                  <h2 id="posterSalonName">GMB Business Profile</h2>
-                  <p id="posterTagline">Google Verified Business</p>
+                  <h2 id="posterSalonName">Business Profile</h2>
+                  <p id="posterTagline">Business Profile</p>
 
                   <div class="poster-qr-frame">
                     <img id="qrImg" alt="QR Code">
@@ -536,13 +536,13 @@
         currentSettings = s;
         $('dashSalonName').textContent = s.name;
         if ($('viewLiveBtn')) $('viewLiveBtn').href = `/r/${s.slug || activeTenantSlug}`;
-        $('posterSalonName').textContent = s.name;
-        $('posterTagline').textContent = s.tagline || 'Google Verified Business';
+        $('posterSalonName').textContent = s.name || 'Business Profile';
+        $('posterTagline').textContent = s.tagline || s.category || 'Business Profile';
 
         if ($('posterBadge')) {
-          const words = (s.name || 'GMB').trim().split(/\s+/);
+          const words = (s.name || 'Business Profile').trim().split(/\s+/);
           const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].substring(0, 2).toUpperCase();
-          $('posterBadge').textContent = initials;
+          $('posterBadge').textContent = s.initials || initials;
         }
 
         $('setSalonName').value = s.name || '';
@@ -575,7 +575,7 @@
       ctx.textAlign = 'center';
 
       // Draw dynamic tenant initials badge on poster canvas
-      const words = (currentSettings.name || 'GMB').trim().split(/\s+/);
+      const words = (currentSettings.name || 'Business Profile').trim().split(/\s+/);
       const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : words[0].substring(0, 2).toUpperCase();
 
       ctx.beginPath();
@@ -585,15 +585,15 @@
 
       ctx.fillStyle = '#1f121b';
       ctx.font = 'bold 36px Georgia, serif';
-      ctx.fillText(initials, 600, 122);
+      ctx.fillText(currentSettings.initials || initials, 600, 122);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 56px Georgia, serif';
-      ctx.fillText(currentSettings.name || 'GMB Business Profile', 600, 210);
+      ctx.fillText(currentSettings.name || 'Business Profile', 600, 210);
 
       ctx.fillStyle = '#e8cad8';
       ctx.font = '30px sans-serif';
-      ctx.fillText(currentSettings.tagline || 'Google Verified Business', 600, 270);
+      ctx.fillText(currentSettings.tagline || currentSettings.category || 'Business Profile', 600, 270);
 
       const qrImg = $('qrImg');
       ctx.fillStyle = '#ffffff';
